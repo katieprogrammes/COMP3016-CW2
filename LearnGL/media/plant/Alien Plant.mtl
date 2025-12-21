@@ -1,0 +1,19 @@
+# Created with Anim8or 1.00
+# Object "Alien Plant":
+
+newmtl Alien_Plant_Leaf
+Ka 0.243 0.243 0.243
+Kd 0.682 0.682 0.682
+Ks 0.624 0.624 0.624
+Ns 752.6
+map_Kd AlienPlant-Leaf-Diffuse.png
+map_Ks AlienPlant-Leaf-Specular.png
+
+newmtl Alien_Plant_Stem
+Ka 0.329 0.329 0.329
+Kd 0.612 0.612 0.612
+Ks 0.435 0.435 0.435
+Ns 752.6
+map_Kd AlienPlant-Stem-Diffuse.png
+map_Ks AlienPlant-Stem-Specular.png
+
