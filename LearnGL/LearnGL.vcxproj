@@ -130,12 +130,14 @@
   <ItemGroup>
     <ClInclude Include="main.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="terrain.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Solution.cpp" />
     <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\light_cube.fs" />

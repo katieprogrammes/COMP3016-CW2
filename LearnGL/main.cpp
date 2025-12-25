@@ -10,6 +10,8 @@
 #include <learnopengl/shader_m.h>
 #include <learnopengl/camera.h>
 
+#include "terrain.h"
+
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -23,9 +25,6 @@ unsigned int loadTexture(const char* path);
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-
-//Error checking
-void glfwErrorCallback(int error, const char* description) { std::cerr << "GLFW Error " << error << ": " << description << std::endl; }
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -86,6 +85,11 @@ int main()
     // ------------------------------------
     Shader lightingShader("textures/colors.vs", "textures/colors.fs");
     Shader lightCubeShader("shaders/light_cube.vs", "shaders/light_cube.fs");
+
+
+    //terrain
+    unsigned int terrainTexture = loadTexture("media/rockytext.jpg"); 
+    Terrain terrain = CreateTerrain();
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -175,10 +179,6 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // load textures (we now use a utility function to keep the code more organized)
-    // -----------------------------------------------------------------------------
-    unsigned int diffuseMap = loadTexture("media/container2.png");
-    unsigned int specularMap = loadTexture("media/container2_specular.png");
     // shader configuration
     // --------------------
     lightingShader.use();
@@ -247,25 +247,11 @@ int main()
         glm::mat4 model = glm::mat4(1.0f);
         lightingShader.setMat4("model", model);
 
-        // bind diffuse map
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseMap);
-        // bind specular map
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specularMap);
-
-        // render the cube
-        glBindVertexArray(cubeVAO);
-        for (unsigned int i = 0; i < 10; i++)
-        {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            lightingShader.setMat4("model", model);
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        glm::mat4 terrainModel = glm::mat4(1.0f); 
+        lightingShader.setMat4("model", terrainModel); 
+        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, terrainTexture); 
+        glBindVertexArray(terrain.VAO); 
+        glDrawElements(GL_TRIANGLES, terrain.indexCount, GL_UNSIGNED_INT, 0);
 
 
         // also draw the lamp object
@@ -290,7 +276,6 @@ int main()
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &cubeVAO);
     glDeleteVertexArrays(1, &lightCubeVAO);
     glDeleteBuffers(1, &VBO);
 
@@ -365,16 +350,12 @@ unsigned int loadTexture(char const* path)
     glGenTextures(1, &textureID);
 
     int width, height, nrComponents;
-    unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+
+    unsigned char* data = stbi_load(path, &width, &height, &nrComponents, STBI_rgb);
+
     if (data)
     {
-        GLenum format;
-        if (nrComponents == 1)
-            format = GL_RED;
-        else if (nrComponents == 3)
-            format = GL_RGB;
-        else if (nrComponents == 4)
-            format = GL_RGBA;
+        GLenum format = GL_RGB;
 
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
