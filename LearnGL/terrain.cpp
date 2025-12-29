@@ -5,12 +5,7 @@ const int TERRAIN_SIZE = 200;
 const float TERRAIN_SCALE = 1.0f;
 const float HEIGHT_SCALE = 20.0f;
 
-struct Vertex {
-    glm::vec3 pos;
-    glm::vec3 normal;
-    glm::vec3 color;
-    glm::vec2 uv;
-};
+
 
 static int idx(int x, int z) {
     return z * TERRAIN_SIZE + x;
@@ -143,5 +138,8 @@ float GetTerrainHeight(float x, float z)
         return 0;
 
     return vertices[idx(ix, iz)].pos.y;
+}
+const std::vector<Vertex>& GetTerrainVertices() {
+    return vertices;
 }
 

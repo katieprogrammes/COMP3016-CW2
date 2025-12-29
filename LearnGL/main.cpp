@@ -1,4 +1,4 @@
-#include <glad/glad.h>
+﻿#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #define STB_IMAGE_IMPLEMENTATION 
 #include "stb_image.h" 
@@ -12,6 +12,11 @@
 
 #include "terrain.h"
 
+#include <PxPhysicsAPI.h> 
+#include <cooking/PxCooking.h>
+using namespace physx;
+
+
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -20,14 +25,152 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 unsigned int loadTexture(const char* path);
 
+//physX
+PxFoundation* gFoundation = nullptr;
+PxPhysics* gPhysics = nullptr;
+PxScene* gScene = nullptr;
+
+PxDefaultAllocator gAllocator;
+
+
+class MyErrorCallback : public PxErrorCallback
+{
+public:
+    void reportError(PxErrorCode::Enum code,
+        const char* message,
+        const char* file,
+        int line) override
+    {
+        printf("PhysX Error (%d): %s at %s:%d\n", code, message, file, line);
+    }
+};
+
+MyErrorCallback gErrorCallback;
+
+
+class MyCpuDispatcher : public physx::PxCpuDispatcher
+{
+public:
+    void submitTask(physx::PxBaseTask& task) override
+    {
+        task.run();
+        task.release();
+    }
+
+    uint32_t getWorkerCount() const override
+    {
+        return 1; // single-threaded dispatcher
+    }
+};
+
+MyCpuDispatcher gDispatcher;
+
+PxFilterFlags MyFilterShader(
+    PxFilterObjectAttributes a0, PxFilterData d0,
+    PxFilterObjectAttributes a1, PxFilterData d1,
+    PxPairFlags& pairFlags, const void*, PxU32)
+{
+    pairFlags = PxPairFlag::eCONTACT_DEFAULT;
+    return PxFilterFlag::eDEFAULT;
+}
+
+
+void InitPhysX()
+{
+    PxTolerancesScale scale;
+
+    gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
+    gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, scale);
+
+    PxSceneDesc sceneDesc(scale);
+    sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
+
+    // Replace PxDefaultCpuDispatcherCreate with manual dispatcher
+    sceneDesc.cpuDispatcher = &gDispatcher;
+    sceneDesc.filterShader = MyFilterShader;
+
+    gScene = gPhysics->createScene(sceneDesc);
+}
+
+
+PxRigidStatic* CreatePhysXHeightfield()
+{
+    const auto& verts = GetTerrainVertices();
+    std::cout << "Terrain verts: " << verts.size() << std::endl;
+
+
+    PxHeightFieldDesc hfDesc;
+    hfDesc.nbRows = TERRAIN_SIZE;
+    hfDesc.nbColumns = TERRAIN_SIZE;
+    hfDesc.format = PxHeightFieldFormat::eS16_TM;
+
+    std::vector<PxHeightFieldSample> samples;
+    samples.resize(TERRAIN_SIZE * TERRAIN_SIZE);
+
+    for (int z = 0; z < TERRAIN_SIZE; z++)
+    {
+        for (int x = 0; x < TERRAIN_SIZE; x++)
+        {
+            float h = verts[z * TERRAIN_SIZE + x].pos.y;
+
+            PxHeightFieldSample& s = samples[z * TERRAIN_SIZE + x];
+            s.height = (PxI16)h;   
+            s.materialIndex0 = 0;
+            s.materialIndex1 = 0;
+        }
+    }
+
+    hfDesc.samples.data = samples.data();
+    hfDesc.samples.stride = sizeof(PxHeightFieldSample);
+
+    PxHeightField* heightField = PxCreateHeightField(hfDesc);
+
+    PxHeightFieldGeometry hfGeom(
+        heightField,
+        PxMeshGeometryFlags(),
+        1.0f,              // height scale already baked in
+        TERRAIN_SCALE,     // row scale (Z)
+        TERRAIN_SCALE      // column scale (X)
+    );
+
+    PxMaterial* mat = gPhysics->createMaterial(0.5f, 0.5f, 0.5f);
+
+    PxRigidStatic* terrainActor =
+        gPhysics->createRigidStatic(PxTransform(PxVec3(0, 0, 0)));
+
+    PxShape* shape = gPhysics->createShape(hfGeom, *mat);
+    terrainActor->attachShape(*shape);
+
+    gScene->addActor(*terrainActor);
+
+    return terrainActor;
+}
+
+float GetPhysicsTerrainHeight(float x, float z)
+{
+    PxVec3 origin(x, 500.0f, z);
+
+    PxRaycastBuffer hit;
+    bool result = gScene->raycast(
+        origin,
+        PxVec3(0, -1, 0),
+        500.0f,
+        hit
+    );
+
+    if (result)
+        return hit.block.position.y;
+
+    return 0.0f;
+}
 
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1080;
+const unsigned int SCR_HEIGHT = 720;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(100.0f, 50.0f, 100.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -39,7 +182,6 @@ float lastFrame = 0.0f;
 
 int main()
 {
-
 
     // glfw: initialize and configure
     // ------------------------------
@@ -81,15 +223,29 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 
+    //terrain
+    unsigned int terrainTexture = loadTexture("media/rockytext.jpg");
+    Terrain terrain = CreateTerrain();
+
+    InitPhysX();
+    CreatePhysXHeightfield();
+
+    // Run one physics step so the heightfield is ready
+    gScene->simulate(0.0f);
+    gScene->fetchResults(true);
+
+    // Now clamp + snap camera to terrain
+    camera.Position.x = glm::clamp(camera.Position.x, 0.0f, (float)(TERRAIN_SIZE - 1));
+    camera.Position.z = glm::clamp(camera.Position.z, 0.0f, (float)(TERRAIN_SIZE - 1));
+
+    float terrainY = GetPhysicsTerrainHeight(camera.Position.x, camera.Position.z);
+    float offset = 2.0f;
+    camera.Position.y = terrainY + offset;
+
     // build and compile our shader zprogram
     // ------------------------------------
     Shader lightingShader("textures/colors.vs", "textures/colors.fs");
     Shader lightCubeShader("shaders/light_cube.vs", "shaders/light_cube.fs");
-
-
-    //terrain
-    unsigned int terrainTexture = loadTexture("media/rockytext.jpg"); 
-    Terrain terrain = CreateTerrain();
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -205,6 +361,30 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        gScene->simulate(deltaTime);
+        gScene->fetchResults(true);
+        float terrainY = GetPhysicsTerrainHeight(camera.Position.x, camera.Position.z); 
+        float offset = 2.0f; // camera walks on terrain
+
+        camera.Position.y = glm::mix(camera.Position.y, terrainY + offset, 10.0f * deltaTime);
+
+
+
+        //debug check
+        PxRaycastBuffer hit;
+        bool result = gScene->raycast(
+            PxVec3(50, 100, 50),   // origin above terrain
+            PxVec3(0, -1, 0),      // straight down
+            200.0f,                // max distance
+            hit
+        );
+
+        if (result)
+            std::cout << "Ray hit terrain at Y = " << hit.block.position.y << std::endl;
+        else
+            std::cout << "Ray missed terrain" << std::endl;
+
+
         // be sure to activate shader when setting uniforms/drawing objects
         lightingShader.use();
         lightingShader.setVec3("viewPos", camera.Position);
@@ -292,15 +472,22 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    float speed = camera.MovementSpeed * deltaTime;
+
+    // Build a horizontal forward vector (Y = 0)
+    glm::vec3 forward = glm::normalize(glm::vec3(camera.Front.x, 0.0f, camera.Front.z));
+    glm::vec3 right = glm::normalize(glm::vec3(camera.Right.x, 0.0f, camera.Right.z));
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
+        camera.Position += forward * speed;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
+        camera.Position -= forward * speed;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
+        camera.Position -= right * speed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
+        camera.Position += right * speed;
 }
+
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
@@ -376,3 +563,4 @@ unsigned int loadTexture(char const* path)
 
     return textureID;
 }
+
