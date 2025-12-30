@@ -39,6 +39,7 @@ struct CrystalInstance {
     glm::vec3 position;
     glm::vec3 scale;
     Model* model;
+    glm::vec3 tint;
 };
 std::vector<CrystalInstance> crystals;
 
@@ -239,6 +240,8 @@ int main()
     // build and compile shader programs
     Shader lightingShader("textures/colors.vs", "textures/colors.fs");
     Shader lightCubeShader("shaders/light_cube.vs", "shaders/light_cube.fs");
+    Shader crystalShader("shaders/crystal.vs", "shaders/crystal.fs");
+
 
     //load models
     Model blueCrystal("media/gems/blue.gltf"); 
@@ -252,19 +255,22 @@ int main()
     crystals.push_back({
         glm::vec3(95.0f, -10.0f, 80.0f),   // position
         glm::vec3(0.005f),                 // scale
-        &redCrystal                        // crystal
+        &redCrystal,                        // crystal
+        glm::vec3(1.0f, 0.2f, 0.2f)
         });
 
     crystals.push_back({
         glm::vec3(92.0f, -10.0f, 80.0f),
         glm::vec3(0.005f),
-        &blueCrystal
+        &blueCrystal,
+        glm::vec3(0.2f, 0.4f, 1.0f)
         });
 
     crystals.push_back({
         glm::vec3(89.0f, -10.0f, 80.0f),
         glm::vec3(0.005f),
-        &greenCrystal
+        &greenCrystal,
+        glm::vec3(0.2f, 1.0f, 0.4f)
         });
 
 
@@ -292,6 +298,13 @@ int main()
     lightingShader.use();
     lightingShader.setInt("material.diffuse", 0);
     lightingShader.setInt("material.specular", 1);
+
+    crystalShader.use();
+    crystalShader.setInt("texture_diffuse1", 0);
+
+
+
+
 
 
     // render loop
@@ -357,22 +370,39 @@ int main()
 
         lightingShader.setMat4("projection", projection);
         lightingShader.setMat4("view", view);
-
+        
+        
         //draw crystal
-        for (auto& c : crystals) {
+        crystalShader.use();
+        crystalShader.setMat4("projection", projection);
+        crystalShader.setMat4("view", view);
+
+        for (auto& c : crystals)
+        {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, c.position);
             model = glm::scale(model, c.scale);
-            lightingShader.setMat4("model", model);
-            c.model->Draw(lightingShader);
+
+            crystalShader.setMat4("model", model);
+            crystalShader.setVec3("tint", c.tint);
+
+            c.model->Draw(crystalShader);
         }
 
+
         // world transformation
+        lightingShader.use();
+
         glm::mat4 model = glm::mat4(1.0f);
         lightingShader.setMat4("model", model);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, terrainTexture);
+        glDisableVertexAttribArray(3); 
+        glDisableVertexAttribArray(4); 
+        glDisableVertexAttribArray(5); 
+        glDisableVertexAttribArray(6);
+
+        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, terrainTexture); 
+        glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, terrainTexture);
 
         glBindVertexArray(terrain.VAO);
         glDrawElements(GL_TRIANGLES, terrain.indexCount, GL_UNSIGNED_INT, 0);

@@ -132,13 +132,11 @@ PhysXFoundation_64.lib;PhysXCooking_64.lib;assimp-vc143-mt.lib;%(AdditionalDepen
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CrystalSpawner.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="terrain.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CrystalSpawner.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Solution.cpp" />
@@ -146,6 +144,8 @@ PhysXFoundation_64.lib;PhysXCooking_64.lib;assimp-vc143-mt.lib;%(AdditionalDepen
     <ClCompile Include="terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\crystal.fs" />
+    <None Include="shaders\crystal.vs" />
     <None Include="shaders\light_cube.fs" />
     <None Include="shaders\light_cube.vs" />
     <None Include="textures\colors.fs" />
