@@ -10,7 +10,7 @@ const float HEIGHT_SCALE = 20.0f;
 static int idx(int x, int z) {
     return z * TERRAIN_SIZE + x;
 }
-static std::vector<Vertex> vertices;
+static std::vector<TerrainVertex> vertices;
 
 
 Terrain CreateTerrain() {
@@ -34,7 +34,7 @@ Terrain CreateTerrain() {
 
             float h = noise.GetNoise((float)x, (float)z) * HEIGHT_SCALE;
 
-            Vertex v;
+            TerrainVertex v;
             v.pos = glm::vec3(x * TERRAIN_SCALE, h - 15.0f, z * TERRAIN_SCALE);
 
 
@@ -102,26 +102,26 @@ Terrain CreateTerrain() {
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TerrainVertex), vertices.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
     // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)0);
     glEnableVertexAttribArray(0);
 
     // normal
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)offsetof(TerrainVertex, normal));
     glEnableVertexAttribArray(1);
 
     // color
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)offsetof(TerrainVertex, color));
     glEnableVertexAttribArray(3);
 
 
     // uv
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv)); 
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)offsetof(TerrainVertex, uv)); 
     glEnableVertexAttribArray(2);
 
 
@@ -139,7 +139,7 @@ float GetTerrainHeight(float x, float z)
 
     return vertices[idx(ix, iz)].pos.y;
 }
-const std::vector<Vertex>& GetTerrainVertices() {
+const std::vector<TerrainVertex>& GetTerrainVertices() {
     return vertices;
 }
 

@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include "FastNoiseLite.h"
 
-struct Vertex {
+struct TerrainVertex {
     glm::vec3 pos;
     glm::vec3 normal;
     glm::vec3 color;
@@ -21,4 +21,4 @@ Terrain CreateTerrain();
 
 float GetTerrainHeight(float x, float z);
 
-const std::vector<Vertex>& GetTerrainVertices();
+const std::vector<TerrainVertex>& GetTerrainVertices();

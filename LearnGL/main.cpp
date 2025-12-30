@@ -1,20 +1,23 @@
 ﻿#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#define STB_IMAGE_IMPLEMENTATION 
-#include "stb_image.h" 
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <learnopengl/shader_m.h>
 #include <learnopengl/camera.h>
+#include <learnopengl/model.h>
+#include <learnopengl/mesh.h>
 
 #include "terrain.h"
 
 #include <PxPhysicsAPI.h> 
 #include <cooking/PxCooking.h>
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 using namespace physx;
 
@@ -30,6 +33,14 @@ PxPhysics* gPhysics = nullptr;
 PxScene* gScene = nullptr;
 
 PxDefaultAllocator gAllocator;
+
+//crystal model structure
+struct CrystalInstance {
+    glm::vec3 position;
+    glm::vec3 scale;
+    Model* model;
+};
+std::vector<CrystalInstance> crystals;
 
 
 class MyErrorCallback : public PxErrorCallback
@@ -229,6 +240,34 @@ int main()
     Shader lightingShader("textures/colors.vs", "textures/colors.fs");
     Shader lightCubeShader("shaders/light_cube.vs", "shaders/light_cube.fs");
 
+    //load models
+    Model blueCrystal("media/gems/blue.gltf"); 
+    Model redCrystal("media/gems/red.gltf"); 
+    Model greenCrystal("media/gems/green.gltf");
+
+    //spawn model settings
+    crystals.clear();
+
+    // One red, one blue, one green
+    crystals.push_back({
+        glm::vec3(95.0f, -10.0f, 80.0f),   // position
+        glm::vec3(0.005f),                 // scale
+        &redCrystal                        // crystal
+        });
+
+    crystals.push_back({
+        glm::vec3(92.0f, -10.0f, 80.0f),
+        glm::vec3(0.005f),
+        &blueCrystal
+        });
+
+    crystals.push_back({
+        glm::vec3(89.0f, -10.0f, 80.0f),
+        glm::vec3(0.005f),
+        &greenCrystal
+        });
+
+
     //lightcube
     unsigned int lightCubeVAO, VBO;
     float cubeVerts[] = {
@@ -319,6 +358,15 @@ int main()
         lightingShader.setMat4("projection", projection);
         lightingShader.setMat4("view", view);
 
+        //draw crystal
+        for (auto& c : crystals) {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, c.position);
+            model = glm::scale(model, c.scale);
+            lightingShader.setMat4("model", model);
+            c.model->Draw(lightingShader);
+        }
+
         // world transformation
         glm::mat4 model = glm::mat4(1.0f);
         lightingShader.setMat4("model", model);
@@ -349,7 +397,8 @@ int main()
     glDeleteVertexArrays(1, &lightCubeVAO);
     glDeleteBuffers(1, &VBO);
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.    glfwTerminate();
+    // glfw: terminate, clearing all previously allocated GLFW resources.    
+    glfwTerminate();
     return 0;
 }
 
