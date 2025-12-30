@@ -95,15 +95,21 @@ PxRigidStatic* CreatePhysXHeightfield()
     hfDesc.nbColumns = TERRAIN_SIZE;
     hfDesc.format = PxHeightFieldFormat::eS16_TM;
 
-    std::vector<PxHeightFieldSample> samples(TERRAIN_SIZE * TERRAIN_SIZE);
+    std::vector<PxHeightFieldSample> samples;
+    samples.resize(TERRAIN_SIZE * TERRAIN_SIZE);
 
+    // Simple row/col mapping that matches terrain vertices (x = column, z = row)
     for (int z = 0; z < TERRAIN_SIZE; z++)
     {
         for (int x = 0; x < TERRAIN_SIZE; x++)
         {
-            float h = verts[z * TERRAIN_SIZE + x].pos.y;
-            PxHeightFieldSample& s = samples[z * TERRAIN_SIZE + x];
-            s.height = (PxI16)h;   
+            int terrainIndex = z * TERRAIN_SIZE + x;
+            int physxIndex = z * TERRAIN_SIZE + x;
+
+            float h = verts[terrainIndex].pos.y;
+
+            PxHeightFieldSample& s = samples[physxIndex];
+            s.height = (PxI16)h;
             s.materialIndex0 = 0;
             s.materialIndex1 = 0;
         }
@@ -113,20 +119,28 @@ PxRigidStatic* CreatePhysXHeightfield()
     hfDesc.samples.stride = sizeof(PxHeightFieldSample);
 
     PxHeightField* heightField = PxCreateHeightField(hfDesc);
+    if (!heightField) {
+        std::cout << "Failed to create PhysX heightfield" << std::endl;
+        return nullptr;
+    }
 
     PxHeightFieldGeometry hfGeom(
         heightField,
         PxMeshGeometryFlags(),
-        1.0f,              // height scale
-        TERRAIN_SCALE,     // row scale (Z)
-        TERRAIN_SCALE      // column scale (X)
+        1.0f,          // height scale
+        TERRAIN_SCALE, // row scale (X)
+        TERRAIN_SCALE  // column scale (Z)
     );
 
     PxMaterial* mat = gPhysics->createMaterial(0.5f, 0.5f, 0.5f);
 
-    PxRigidStatic* terrainActor =
-        gPhysics->createRigidStatic(PxTransform(PxVec3(0, 0, 0)));
+    PxTransform pose(PxVec3(
+        0.5f * TERRAIN_SCALE,
+        0.0f,
+        0.5f * TERRAIN_SCALE
+    ));
 
+    PxRigidStatic* terrainActor = gPhysics->createRigidStatic(pose);
     PxShape* shape = gPhysics->createShape(hfGeom, *mat);
     terrainActor->attachShape(*shape);
 
@@ -135,9 +149,14 @@ PxRigidStatic* CreatePhysXHeightfield()
     return terrainActor;
 }
 
+
 float GetPhysicsTerrainHeight(float x, float z) {
     PxVec3 origin(x, 500.0f, z);
     PxRaycastBuffer hit;
+    bool ok = gScene->raycast(PxVec3(0, 500, 0), PxVec3(0, -1, 0), 500, hit);
+    std::cout << ok << " " << hit.block.position.y << std::endl;
+
+
 
     if (gScene->raycast(origin, PxVec3(0, -1, 0), 500.0f, hit))
         return hit.block.position.y;
@@ -145,7 +164,7 @@ float GetPhysicsTerrainHeight(float x, float z) {
     return 0.0f;
 }
 
-// settings
+// window settings
 const unsigned int SCR_WIDTH = 1080;
 const unsigned int SCR_HEIGHT = 720;
 
@@ -164,7 +183,6 @@ int main()
 {
 
     // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -175,7 +193,6 @@ int main()
 #endif
 
     // glfw window creation
-    // --------------------
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
@@ -187,8 +204,6 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
-
-    // tell GLFW to capture our mouse
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
@@ -205,11 +220,12 @@ int main()
     unsigned int terrainTexture = loadTexture("media/rockytext.jpg");
     Terrain terrain = CreateTerrain();
 
+
+    //physx
     InitPhysX();
     CreatePhysXHeightfield();
 
-
-    // build and compile our shader zprogram
+    // build and compile shader programs
     Shader lightingShader("textures/colors.vs", "textures/colors.fs");
     Shader lightCubeShader("shaders/light_cube.vs", "shaders/light_cube.fs");
 
@@ -250,15 +266,14 @@ int main()
         // input
         processInput(window);
 
-
-
-        if (deltaTime > 0.0f) {
+        // Step PhysX scene (for future dynamic actors)
+        if (gScene && deltaTime > 0.0f) {
             gScene->simulate(deltaTime);
             gScene->fetchResults(true);
         }
 
-
-        float terrainY = GetPhysicsTerrainHeight(camera.Position.x, camera.Position.z);
+        // CAMERA FOLLOWS TERRAIN (CPU height, from terrain.cpp)
+        float terrainY = GetTerrainHeight(camera.Position.x, camera.Position.z);
         camera.Position.y = glm::mix(camera.Position.y, terrainY + 2.0f, 10.0f * deltaTime);
 
         // render
@@ -337,6 +352,7 @@ int main()
     // glfw: terminate, clearing all previously allocated GLFW resources.    glfwTerminate();
     return 0;
 }
+
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 void processInput(GLFWwindow* window) {
