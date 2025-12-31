@@ -256,42 +256,42 @@ int main()
 
     // One red, one blue, one green
     crystals.push_back({
-        glm::vec3(94.0f, -10.0f, 80.0f),   // position
+        glm::vec3(104.0f, -20.0f, 90.0f),   // position
         glm::vec3(0.005f),                 // scale
         &redCrystal,                        // crystal
         glm::vec3(1.0f, 0.2f, 0.2f)
         });
 
     crystals.push_back({
-        glm::vec3(92.0f, -10.0f, 80.0f),
+        glm::vec3(102.0f, -20.0f, 90.0f),
         glm::vec3(0.005f),
         &blueCrystal,
         glm::vec3(0.2f, 0.4f, 1.0f)
         });
 
     crystals.push_back({
-        glm::vec3(89.0f, -10.0f, 80.0f),
+        glm::vec3(100.0f, -20.0f, 90.0f),
         glm::vec3(0.005f),
         &greenCrystal,
         glm::vec3(0.2f, 1.0f, 0.4f)
         });
 
     crystals.push_back({
-        glm::vec3(87.0f, -10.0f, 80.0f),
+        glm::vec3(98.0f, -20.0f, 90.0f),
         glm::vec3(0.005f),
         &orangeCrystal,
         glm::vec3(1.0f, 0.5f, 0.2f)
         });
 
     crystals.push_back({
-        glm::vec3(85.0f, -10.0f, 80.0f),
+        glm::vec3(96.0f, -20.0f, 90.0f),
         glm::vec3(0.005f),
         &purpleCrystal,
         glm::vec3(0.6f, 0.2f, 1.0f)
         });
 
     crystals.push_back({
-        glm::vec3(83.0f, -10.0f, 80.0f),
+        glm::vec3(94.0f, -20.0f, 90.0f),
         glm::vec3(0.005f),
         &yellowCrystal,
         glm::vec3(1.0f, 1.0f, 0.2f)
