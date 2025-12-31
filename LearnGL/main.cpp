@@ -46,12 +46,18 @@ std::vector<CrystalInstance> crystals;
 void SpawnCrystalOnTerrain(
     Model* model,
     float x,
-    float z,
-    float scale = 0.005f
+    float z
 ) {
     float y = GetTerrainHeight(x, z);
     bool real = (rand() % 5 == 0); // 20% chance real
-    crystals.push_back({ glm::vec3(x,y,z), glm::vec3(scale), model, real });
+    //Normalise height
+    float desiredHeight = 3.0f;
+    float scaleFactor = desiredHeight / model->height;
+    crystals.push_back({ 
+        glm::vec3(x,y,z), 
+        glm::vec3(scaleFactor), 
+        model, 
+        real });
 
 }
 
@@ -256,6 +262,8 @@ int main()
     Shader lightCubeShader("shaders/light_cube.vs", "shaders/light_cube.fs");
     Shader crystalShader("shaders/crystal.vs", "shaders/crystal.fs");
 
+    //randomise crystals for each launch
+    crystals.clear();
 
     //load models
     Model blueCrystal("media/gems/blue.gltf"); 
@@ -264,6 +272,12 @@ int main()
     Model orangeCrystal("media/gems/orange.gltf");
     Model purpleCrystal("media/gems/purple.gltf");
     Model yellowCrystal("media/gems/yellow.gltf");
+    Model blue2Crystal("media/gems/blue2.gltf");
+    Model shinyCrystal("media/gems/shiny.gltf");
+    Model lgPurpCrystal("media/gems/lgPurp.gltf");
+    Model lgBlueCrystal("media/gems/lgBlue.gltf");
+    Model lgRedCrystal("media/gems/lgRed.gltf");
+    Model lgOrangeCrystal("media/gems/lgOrange.gltf");
 
     std::vector<Model*> crystalModels = { 
         &redCrystal, 
@@ -271,9 +285,15 @@ int main()
         &greenCrystal, 
         &orangeCrystal, 
         &purpleCrystal, 
-        &yellowCrystal };
+        &yellowCrystal,
+        &blue2Crystal,
+        &shinyCrystal,
+        &lgPurpCrystal,
+        &lgBlueCrystal,
+        &lgOrangeCrystal
+    };
 
-    for (int i = 0; i < 50; i++)
+    for (int i = 0; i < 75; i++)
     {
         float x = rand() % TERRAIN_SIZE;
         float z = rand() % TERRAIN_SIZE;
@@ -378,7 +398,12 @@ int main()
         lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
+        //crystal reaction to spotLight
+        crystalShader.use();
+        crystalShader.setVec3("lightPos", pointLightPosition);
+
         // view/projection transformations
+        lightingShader.use();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
@@ -391,6 +416,7 @@ int main()
         crystalShader.setMat4("projection", projection);
         crystalShader.setMat4("view", view);
         crystalShader.setFloat("time", currentFrame);
+        crystalShader.setVec3("viewPos", camera.Position);
 
         for (auto& c : crystals)
         {

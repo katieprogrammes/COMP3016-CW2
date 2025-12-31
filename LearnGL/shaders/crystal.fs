@@ -22,8 +22,7 @@ void main()
     vec3 base = texture(texture_diffuse1, TexCoords).rgb;
 
     // 2. Normal map
-    vec3 normalMap = texture(texture_normal1, TexCoords).rgb;
-    normalMap = normalize(normalMap * 2.0 - 1.0);
+    vec3 normalMap = normalize(Normal);
 
     // 3. Simple lighting
     vec3 lightDir = normalize(lightPos - FragPos);
@@ -34,9 +33,18 @@ void main()
     // 4. Emissive glow
     vec3 emissive = texture(texture_emissive1, TexCoords).rgb;
 
-    // 5. Sparkle
-    float pulse = sin(time * 8.0 + FragPos.x * 3.0 + FragPos.z * 3.0) * 0.5 + 0.5; // Boost emissive only if sparkleStrength > 0 
-    emissive *= 1.0 + sparkleStrength * pulse * 1.5;
+    //5. Sparkle effect
+
+    // View direction 
+    vec3 viewDir = normalize(viewPos - FragPos); 
+    // Specular highlight (sharp)
+    float spec = pow(max(dot(normalMap, viewDir), 0.0), 64.0); 
+    // Animate the glint so it flickers 
+    float flicker = sin(time * 10.0 + FragPos.x * 2.0 + FragPos.z * 2.0) * 0.5 + 0.5; 
+    // Final glint intensity 
+    float glint = spec * flicker * sparkleStrength;
+    // Add glint to emissive 
+    emissive += glint * 0.8;
 
     // 6. Final color
     FragColor = vec4(lighting + emissive, 1.0);
