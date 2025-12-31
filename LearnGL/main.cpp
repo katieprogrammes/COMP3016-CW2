@@ -247,13 +247,16 @@ int main()
     Model blueCrystal("media/gems/blue.gltf"); 
     Model redCrystal("media/gems/red.gltf"); 
     Model greenCrystal("media/gems/green.gltf");
+    Model orangeCrystal("media/gems/orange.gltf");
+    Model purpleCrystal("media/gems/purple.gltf");
+    Model yellowCrystal("media/gems/yellow.gltf");
 
     //spawn model settings
     crystals.clear();
 
     // One red, one blue, one green
     crystals.push_back({
-        glm::vec3(95.0f, -10.0f, 80.0f),   // position
+        glm::vec3(94.0f, -10.0f, 80.0f),   // position
         glm::vec3(0.005f),                 // scale
         &redCrystal,                        // crystal
         glm::vec3(1.0f, 0.2f, 0.2f)
@@ -273,6 +276,26 @@ int main()
         glm::vec3(0.2f, 1.0f, 0.4f)
         });
 
+    crystals.push_back({
+        glm::vec3(87.0f, -10.0f, 80.0f),
+        glm::vec3(0.005f),
+        &orangeCrystal,
+        glm::vec3(1.0f, 0.5f, 0.2f)
+        });
+
+    crystals.push_back({
+        glm::vec3(85.0f, -10.0f, 80.0f),
+        glm::vec3(0.005f),
+        &purpleCrystal,
+        glm::vec3(0.6f, 0.2f, 1.0f)
+        });
+
+    crystals.push_back({
+        glm::vec3(83.0f, -10.0f, 80.0f),
+        glm::vec3(0.005f),
+        &yellowCrystal,
+        glm::vec3(1.0f, 1.0f, 0.2f)
+        });
 
     //lightcube
     unsigned int lightCubeVAO, VBO;
