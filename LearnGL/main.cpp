@@ -278,6 +278,11 @@ int main()
     Model lgBlueCrystal("media/gems/lgBlue.gltf");
     Model lgRedCrystal("media/gems/lgRed.gltf");
     Model lgOrangeCrystal("media/gems/lgOrange.gltf");
+    Model lilGreenCrystal("media/gems/lilgreen.gltf");
+    Model lilPurpCrystal("media/gems/lilpurp.gltf");
+    Model lilOrangeCrystal("media/gems/lilorange.gltf");
+    Model lilRedCrystal("media/gems/lilred.gltf");
+    Model sunsetCrystal("media/gems/sunset.gltf");
 
     std::vector<Model*> crystalModels = { 
         &redCrystal, 
@@ -290,10 +295,15 @@ int main()
         &shinyCrystal,
         &lgPurpCrystal,
         &lgBlueCrystal,
-        &lgOrangeCrystal
+        &lgOrangeCrystal,
+        &lilGreenCrystal,
+        &lilPurpCrystal,
+        &lilOrangeCrystal,
+        &lilRedCrystal,
+        &sunsetCrystal
     };
 
-    for (int i = 0; i < 75; i++)
+    for (int i = 0; i < 85; i++)
     {
         float x = rand() % TERRAIN_SIZE;
         float z = rand() % TERRAIN_SIZE;
