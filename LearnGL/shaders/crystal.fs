@@ -13,6 +13,9 @@ uniform sampler2D texture_emissive1;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 
+uniform float time; 
+uniform float sparkleStrength; // 0 for fake, 1 for real
+
 void main()
 {
     // 1. Base color
@@ -31,6 +34,10 @@ void main()
     // 4. Emissive glow
     vec3 emissive = texture(texture_emissive1, TexCoords).rgb;
 
-    // 5. Final color
+    // 5. Sparkle
+    float pulse = sin(time * 8.0 + FragPos.x * 3.0 + FragPos.z * 3.0) * 0.5 + 0.5; // Boost emissive only if sparkleStrength > 0 
+    emissive *= 1.0 + sparkleStrength * pulse * 1.5;
+
+    // 6. Final color
     FragColor = vec4(lighting + emissive, 1.0);
 }

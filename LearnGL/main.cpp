@@ -39,7 +39,7 @@ struct CrystalInstance {
     glm::vec3 position;
     glm::vec3 scale;
     Model* model;
-    
+    bool isReal = false; // default fake
 };
 std::vector<CrystalInstance> crystals;
 
@@ -50,12 +50,9 @@ void SpawnCrystalOnTerrain(
     float scale = 0.005f
 ) {
     float y = GetTerrainHeight(x, z);
+    bool real = (rand() % 5 == 0); // 20% chance real
+    crystals.push_back({ glm::vec3(x,y,z), glm::vec3(scale), model, real });
 
-    crystals.push_back({
-        glm::vec3(x, y, z),
-        glm::vec3(scale),
-        model
-        });
 }
 
 
@@ -393,6 +390,7 @@ int main()
         crystalShader.use();
         crystalShader.setMat4("projection", projection);
         crystalShader.setMat4("view", view);
+        crystalShader.setFloat("time", currentFrame);
 
         for (auto& c : crystals)
         {
@@ -401,6 +399,8 @@ int main()
             modelMat = glm::scale(modelMat, c.scale);
 
             crystalShader.setMat4("model", modelMat);
+            crystalShader.setFloat("sparkleStrength", c.isReal ? 1.0f : 0.0f);
+
             c.model->Draw(crystalShader);
         }
 

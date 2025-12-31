@@ -15,18 +15,14 @@ static std::vector<TerrainVertex> vertices;
 
 Terrain CreateTerrain() {
 
-    // -------------------------
-    // 1. Setup FastNoiseLite
-    // -------------------------
+    
     FastNoiseLite noise;
     noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
     noise.SetFractalType(FastNoiseLite::FractalType_FBm);
     noise.SetFractalOctaves(4);
     noise.SetFrequency(0.01f);
 
-    // -------------------------
-    // 2. Generate vertices
-    // -------------------------
+   // vertices
     vertices.resize(TERRAIN_SIZE * TERRAIN_SIZE);
 
     for (int z = 0; z < TERRAIN_SIZE; z++) {
@@ -49,9 +45,7 @@ Terrain CreateTerrain() {
 
     }
 
-    // -------------------------
-    // 3. Compute normals
-    // -------------------------
+    // normals
     for (int z = 1; z < TERRAIN_SIZE - 1; z++) {
         for (int x = 1; x < TERRAIN_SIZE - 1; x++) {
 
@@ -67,9 +61,7 @@ Terrain CreateTerrain() {
         }
     }
 
-    // -------------------------
-    // 4. Build indices
-    // -------------------------
+    // indices
     std::vector<unsigned int> indices;
 
     for (int z = 0; z < TERRAIN_SIZE - 1; z++) {
@@ -90,9 +82,7 @@ Terrain CreateTerrain() {
         }
     }
 
-    // -------------------------
-    // 5. Upload to OpenGL
-    // -------------------------
+    
     unsigned int VAO, VBO, EBO;
 
     glGenVertexArrays(1, &VAO);
