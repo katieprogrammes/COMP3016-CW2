@@ -39,7 +39,7 @@ struct CrystalInstance {
     glm::vec3 position;
     glm::vec3 scale;
     Model* model;
-    glm::vec3 tint;
+    
 };
 std::vector<CrystalInstance> crystals;
 
@@ -258,43 +258,37 @@ int main()
     crystals.push_back({
         glm::vec3(104.0f, -20.0f, 90.0f),   // position
         glm::vec3(0.005f),                 // scale
-        &redCrystal,                        // crystal
-        glm::vec3(1.0f, 0.2f, 0.2f)
+        &redCrystal                        // crystal
         });
 
     crystals.push_back({
         glm::vec3(102.0f, -20.0f, 90.0f),
         glm::vec3(0.005f),
-        &blueCrystal,
-        glm::vec3(0.2f, 0.4f, 1.0f)
+        &blueCrystal
         });
 
     crystals.push_back({
         glm::vec3(100.0f, -20.0f, 90.0f),
         glm::vec3(0.005f),
-        &greenCrystal,
-        glm::vec3(0.2f, 1.0f, 0.4f)
+        &greenCrystal
         });
 
     crystals.push_back({
         glm::vec3(98.0f, -20.0f, 90.0f),
         glm::vec3(0.005f),
-        &orangeCrystal,
-        glm::vec3(1.0f, 0.5f, 0.2f)
+        &orangeCrystal
         });
 
     crystals.push_back({
         glm::vec3(96.0f, -20.0f, 90.0f),
         glm::vec3(0.005f),
-        &purpleCrystal,
-        glm::vec3(0.6f, 0.2f, 1.0f)
+        &purpleCrystal
         });
 
     crystals.push_back({
         glm::vec3(94.0f, -20.0f, 90.0f),
         glm::vec3(0.005f),
-        &yellowCrystal,
-        glm::vec3(1.0f, 1.0f, 0.2f)
+        &yellowCrystal
         });
 
     //lightcube
@@ -324,6 +318,9 @@ int main()
 
     crystalShader.use();
     crystalShader.setInt("texture_diffuse1", 0);
+    crystalShader.setInt("texture_normal1", 1);
+    crystalShader.setInt("texture_emissive1", 2);
+
 
 
 
@@ -407,7 +404,6 @@ int main()
             model = glm::scale(model, c.scale);
 
             crystalShader.setMat4("model", model);
-            crystalShader.setVec3("tint", c.tint);
 
             c.model->Draw(crystalShader);
         }
