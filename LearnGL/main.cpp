@@ -43,6 +43,23 @@ struct CrystalInstance {
 };
 std::vector<CrystalInstance> crystals;
 
+void SpawnCrystalOnTerrain(
+    Model* model,
+    float x,
+    float z,
+    float scale = 0.005f
+) {
+    float y = GetTerrainHeight(x, z);
+
+    crystals.push_back({
+        glm::vec3(x, y, z),
+        glm::vec3(scale),
+        model
+        });
+}
+
+
+
 
 class MyErrorCallback : public PxErrorCallback
 {
@@ -251,45 +268,25 @@ int main()
     Model purpleCrystal("media/gems/purple.gltf");
     Model yellowCrystal("media/gems/yellow.gltf");
 
-    //spawn model settings
-    crystals.clear();
+    std::vector<Model*> crystalModels = { 
+        &redCrystal, 
+        &blueCrystal, 
+        &greenCrystal, 
+        &orangeCrystal, 
+        &purpleCrystal, 
+        &yellowCrystal };
 
-    // One red, one blue, one green
-    crystals.push_back({
-        glm::vec3(104.0f, -20.0f, 90.0f),   // position
-        glm::vec3(0.005f),                 // scale
-        &redCrystal                        // crystal
-        });
+    for (int i = 0; i < 50; i++)
+    {
+        float x = rand() % TERRAIN_SIZE;
+        float z = rand() % TERRAIN_SIZE;
 
-    crystals.push_back({
-        glm::vec3(102.0f, -20.0f, 90.0f),
-        glm::vec3(0.005f),
-        &blueCrystal
-        });
+        Model* model = crystalModels[rand() % crystalModels.size()];
 
-    crystals.push_back({
-        glm::vec3(100.0f, -20.0f, 90.0f),
-        glm::vec3(0.005f),
-        &greenCrystal
-        });
+        SpawnCrystalOnTerrain(model, x, z);
+    }
 
-    crystals.push_back({
-        glm::vec3(98.0f, -20.0f, 90.0f),
-        glm::vec3(0.005f),
-        &orangeCrystal
-        });
-
-    crystals.push_back({
-        glm::vec3(96.0f, -20.0f, 90.0f),
-        glm::vec3(0.005f),
-        &purpleCrystal
-        });
-
-    crystals.push_back({
-        glm::vec3(94.0f, -20.0f, 90.0f),
-        glm::vec3(0.005f),
-        &yellowCrystal
-        });
+    
 
     //lightcube
     unsigned int lightCubeVAO, VBO;
@@ -399,15 +396,13 @@ int main()
 
         for (auto& c : crystals)
         {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, c.position);
-            model = glm::scale(model, c.scale);
+            glm::mat4 modelMat = glm::mat4(1.0f);
+            modelMat = glm::translate(modelMat, c.position);
+            modelMat = glm::scale(modelMat, c.scale);
 
-            crystalShader.setMat4("model", model);
-
+            crystalShader.setMat4("model", modelMat);
             c.model->Draw(crystalShader);
         }
-
 
         // world transformation
         lightingShader.use();
