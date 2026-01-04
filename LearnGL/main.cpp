@@ -304,6 +304,7 @@ int main()
         //&spikyCrystal
     };
 
+
     for (int i = 0; i < 150; i++)
     {
         float x = rand() % TERRAIN_SIZE;
@@ -345,11 +346,6 @@ int main()
     crystalShader.setInt("texture_diffuse1", 0);
     crystalShader.setInt("texture_normal1", 1);
     crystalShader.setInt("texture_emissive1", 2);
-
-
-
-
-
 
 
     // render loop
@@ -406,7 +402,7 @@ int main()
         lightingShader.setFloat("spotLight.constant", 1.0f);
         lightingShader.setFloat("spotLight.linear", 0.06f);
         lightingShader.setFloat("spotLight.quadratic", 0.020f);
-        lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(10.5f)));
+        lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(11.5f)));
         lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(14.0f)));
 
         //crystal reaction to spotLight
@@ -450,27 +446,26 @@ int main()
             crystalShader.setMat4("model", modelMat);
 
             //detecting if the torch is on the crystal
-            glm::vec3 toCrystal = glm::normalize(c.position - camera.Position); 
+            glm::vec3 toCrystal = glm::normalize(c.position - camera.Position);
             glm::vec3 torchDir = glm::normalize(camera.Front);
 
             float alignment = glm::dot(toCrystal, torchDir);
 
-            float cutOff = glm::cos(glm::radians(12.5f)); 
+            float cutOff = glm::cos(glm::radians(12.5f));
             float outerCutOff = glm::cos(glm::radians(15.0f));
 
-            float intensity = (alignment - outerCutOff) / (cutOff - outerCutOff); 
+            float intensity = (alignment - outerCutOff) / (cutOff - outerCutOff);
             intensity = glm::clamp(intensity, 0.0f, 1.0f);
 
-            float dist = glm::distance(camera.Position, c.position); 
+            float dist = glm::distance(camera.Position, c.position);
             float falloff = 1.0f - glm::clamp(dist / 12.0f, 0.0f, 1.0f);
 
             float sparkle = (c.isReal) ? (intensity * falloff) : 0.0f;
             crystalShader.setFloat("sparkleStrength", sparkle);
 
-
+            // draw the crystal
             c.model->Draw(crystalShader);
         }
-
 
         // world transformation
         lightingShader.use();
