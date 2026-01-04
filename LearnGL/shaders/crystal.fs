@@ -17,6 +17,7 @@ uniform vec3 viewPos;
 
 uniform float time; 
 uniform float sparkleStrength; // 0 for fake, >0 when torch hits real crystal
+uniform bool isRealCrystal;
 
 void main()
 {
@@ -52,7 +53,7 @@ void main()
 
     // 7. Halo glow
     float halo = 0.0; 
-    if (sparkleStrength > 0.0) 
+    if (isRealCrystal && sparkleStrength > 0.0)
     { 
         float distToCamera = length(viewPos - FragPos); 
         halo = 0.4 / (distToCamera * distToCamera); 

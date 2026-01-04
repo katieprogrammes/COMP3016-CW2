@@ -31,7 +31,7 @@ Terrain CreateTerrain() {
             float h = noise.GetNoise((float)x, (float)z) * HEIGHT_SCALE;
 
             TerrainVertex v;
-            v.pos = glm::vec3(x * TERRAIN_SCALE, h - 15.0f, z * TERRAIN_SCALE);
+            v.pos = glm::vec3(x * TERRAIN_SCALE, h, z * TERRAIN_SCALE); //position of terrain
 
 
             float c = glm::clamp(h / HEIGHT_SCALE, 0.0f, 1.0f);
