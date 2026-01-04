@@ -38,6 +38,7 @@ PxDefaultAllocator gAllocator;
 struct CrystalInstance {
     glm::vec3 position;
     glm::vec3 scale;
+    glm::vec3 rotation;
     Model* model;
     bool isReal = false; // default fake
 };
@@ -46,8 +47,7 @@ std::vector<CrystalInstance> crystals;
 void SpawnCrystalOnTerrain(
     Model* model,
     float x,
-    float z
-) {
+    float z) {
     float y = GetTerrainHeight(x, z);
     bool real = (rand() % 5 == 0); // 20% chance real
     //Normalise height
@@ -55,7 +55,8 @@ void SpawnCrystalOnTerrain(
     float scaleFactor = desiredHeight / model->height;
     crystals.push_back({ 
         glm::vec3(x,y,z), 
-        glm::vec3(scaleFactor), 
+        glm::vec3(scaleFactor),
+        glm::vec3(0.0f),
         model, 
         real });
 
@@ -272,8 +273,7 @@ int main()
     Model orangeCrystal("media/gems/orange.gltf");
     Model purpleCrystal("media/gems/purple.gltf");
     Model yellowCrystal("media/gems/yellow.gltf");
-    Model blue2Crystal("media/gems/blue2.gltf");
-    Model shinyCrystal("media/gems/shiny.gltf");
+    //Model shinyCrystal("media/gems/shiny.gltf");
     Model lgPurpCrystal("media/gems/lgPurp.gltf");
     Model lgBlueCrystal("media/gems/lgBlue.gltf");
     Model lgRedCrystal("media/gems/lgRed.gltf");
@@ -283,6 +283,7 @@ int main()
     Model lilOrangeCrystal("media/gems/lilorange.gltf");
     Model lilRedCrystal("media/gems/lilred.gltf");
     Model sunsetCrystal("media/gems/sunset.gltf");
+    //Model spikyCrystal("media/gems/spiky.gltf");
 
     std::vector<Model*> crystalModels = { 
         &redCrystal, 
@@ -291,8 +292,7 @@ int main()
         &orangeCrystal, 
         &purpleCrystal, 
         &yellowCrystal,
-        &blue2Crystal,
-        &shinyCrystal,
+        //&shinyCrystal,
         &lgPurpCrystal,
         &lgBlueCrystal,
         &lgOrangeCrystal,
@@ -300,10 +300,11 @@ int main()
         &lilPurpCrystal,
         &lilOrangeCrystal,
         &lilRedCrystal,
-        &sunsetCrystal
+        &sunsetCrystal,
+        //&spikyCrystal
     };
 
-    for (int i = 0; i < 85; i++)
+    for (int i = 0; i < 150; i++)
     {
         float x = rand() % TERRAIN_SIZE;
         float z = rand() % TERRAIN_SIZE;
@@ -383,8 +384,8 @@ int main()
 
         // directional light
         lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        lightingShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-        lightingShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        lightingShader.setVec3("dirLight.ambient", 0.0f, 0.0f, 0.0f);
+        lightingShader.setVec3("dirLight.diffuse", 0.2f, 0.2f, 0.2f);
         lightingShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
 
         // point light 1
@@ -400,13 +401,13 @@ int main()
         lightingShader.setVec3("spotLight.position", camera.Position);
         lightingShader.setVec3("spotLight.direction", camera.Front);
         lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-        lightingShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-        lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setVec3("spotLight.diffuse", 3.0f, 3.0f, 3.0f);
+        lightingShader.setVec3("spotLight.specular", 3.0f, 3.0f, 3.0f);
         lightingShader.setFloat("spotLight.constant", 1.0f);
-        lightingShader.setFloat("spotLight.linear", 0.09f);
-        lightingShader.setFloat("spotLight.quadratic", 0.032f);
-        lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+        lightingShader.setFloat("spotLight.linear", 0.06f);
+        lightingShader.setFloat("spotLight.quadratic", 0.020f);
+        lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(10.5f)));
+        lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(14.0f)));
 
         //crystal reaction to spotLight
         crystalShader.use();
@@ -431,14 +432,45 @@ int main()
         for (auto& c : crystals)
         {
             glm::mat4 modelMat = glm::mat4(1.0f);
+
+            //position
             modelMat = glm::translate(modelMat, c.position);
+
+            //apply model's auto-upright rotation
+            modelMat = glm::rotate(modelMat, glm::radians(c.model->defaultRotation.x), glm::vec3(1, 0, 0));
+            modelMat = glm::rotate(modelMat, glm::radians(c.model->defaultRotation.y), glm::vec3(0, 1, 0));
+            modelMat = glm::rotate(modelMat, glm::radians(c.model->defaultRotation.z), glm::vec3(0, 0, 1));
+
+            //ground the model so it sits on terrain
+            modelMat = glm::translate(modelMat, glm::vec3(0.0f, -c.model->minY * c.scale.y, 0.0f));
+
+            //scale
             modelMat = glm::scale(modelMat, c.scale);
 
             crystalShader.setMat4("model", modelMat);
-            crystalShader.setFloat("sparkleStrength", c.isReal ? 1.0f : 0.0f);
+
+            //detecting if the torch is on the crystal
+            glm::vec3 toCrystal = glm::normalize(c.position - camera.Position); 
+            glm::vec3 torchDir = glm::normalize(camera.Front);
+
+            float alignment = glm::dot(toCrystal, torchDir);
+
+            float cutOff = glm::cos(glm::radians(12.5f)); 
+            float outerCutOff = glm::cos(glm::radians(15.0f));
+
+            float intensity = (alignment - outerCutOff) / (cutOff - outerCutOff); 
+            intensity = glm::clamp(intensity, 0.0f, 1.0f);
+
+            float dist = glm::distance(camera.Position, c.position); 
+            float falloff = 1.0f - glm::clamp(dist / 12.0f, 0.0f, 1.0f);
+
+            float sparkle = (c.isReal) ? (intensity * falloff) : 0.0f;
+            crystalShader.setFloat("sparkleStrength", sparkle);
+
 
             c.model->Draw(crystalShader);
         }
+
 
         // world transformation
         lightingShader.use();
