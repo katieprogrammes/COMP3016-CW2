@@ -19,6 +19,9 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include <unordered_map>
+
+
 using namespace physx;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -33,6 +36,10 @@ PxPhysics* gPhysics = nullptr;
 PxScene* gScene = nullptr;
 
 PxDefaultAllocator gAllocator;
+std::unordered_map<Model*, std::string> modelNames;
+std::unordered_map<Model*, float> modelRadii;
+
+
 
 //crystal model structure
 struct CrystalInstance {
@@ -40,16 +47,21 @@ struct CrystalInstance {
     glm::vec3 scale;
     glm::vec3 rotation;
     Model* model;
+
     bool isReal = false; // default fake
+
+    void onClick()
+    {
+        
+    }
 };
 std::vector<CrystalInstance> crystals;
 
-void SpawnCrystalOnTerrain(
-    Model* model,
-    float x,
-    float z) {
+void SpawnCrystalOnTerrain(Model* model, float x, float z) 
+{
     float y = GetTerrainHeight(x, z);
     bool real = (rand() % 5 == 0); // 20% chance real
+
     //Normalise height
     float desiredHeight = 3.0f;
     float scaleFactor = desiredHeight / model->height;
@@ -57,8 +69,9 @@ void SpawnCrystalOnTerrain(
         glm::vec3(x,y,z), 
         glm::vec3(scaleFactor),
         glm::vec3(0.0f),
-        model, 
-        real });
+        model,
+        real 
+    });
 
 }
 
@@ -211,6 +224,41 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+//logic to make the crystals clickable
+glm::vec3 GetMouseRay(double mouseX, double mouseY, int screenWidth, int screenHeight,
+    const glm::mat4& projection, const glm::mat4& view)
+{
+    float x = (2.0f * mouseX) / screenWidth - 1.0f;
+    float y = 1.0f - (2.0f * mouseY) / screenHeight;
+    glm::vec4 rayClip = glm::vec4(x, y, -1.0f, 1.0f);
+
+    glm::vec4 rayEye = glm::inverse(projection) * rayClip;
+    rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
+
+    glm::vec3 rayWorld = glm::normalize(glm::vec3(glm::inverse(view) * rayEye));
+    return rayWorld;
+}
+bool RayIntersectsSphere(glm::vec3 rayOrigin, glm::vec3 rayDir,
+    glm::vec3 sphereCenter, float radius)
+{
+    glm::vec3 oc = rayOrigin - sphereCenter;
+    float b = glm::dot(oc, rayDir);
+    float c = glm::dot(oc, oc) - radius * radius;
+    float h = b * b - c;
+    return h >= 0.0f;
+}
+bool mouseClicked = false;
+
+void mouse_click_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        mouseClicked = true;
+    }
+}
+
+
+
 
 int main()
 {
@@ -237,6 +285,7 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetMouseButtonCallback(window, mouse_click_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
@@ -273,7 +322,6 @@ int main()
     Model orangeCrystal("media/gems/orange.gltf");
     Model purpleCrystal("media/gems/purple.gltf");
     Model yellowCrystal("media/gems/yellow.gltf");
-    //Model shinyCrystal("media/gems/shiny.gltf");
     Model lgPurpCrystal("media/gems/lgPurp.gltf");
     Model lgBlueCrystal("media/gems/lgBlue.gltf");
     Model lgRedCrystal("media/gems/lgRed.gltf");
@@ -282,8 +330,6 @@ int main()
     Model lilPurpCrystal("media/gems/lilpurp.gltf");
     Model lilOrangeCrystal("media/gems/lilorange.gltf");
     Model lilRedCrystal("media/gems/lilred.gltf");
-    Model sunsetCrystal("media/gems/sunset.gltf");
-    //Model spikyCrystal("media/gems/spiky.gltf");
 
     std::vector<Model*> crystalModels = { 
         &redCrystal, 
@@ -292,7 +338,6 @@ int main()
         &orangeCrystal, 
         &purpleCrystal, 
         &yellowCrystal,
-        //&shinyCrystal,
         &lgPurpCrystal,
         &lgBlueCrystal,
         &lgOrangeCrystal,
@@ -300,9 +345,25 @@ int main()
         &lilPurpCrystal,
         &lilOrangeCrystal,
         &lilRedCrystal,
-        &sunsetCrystal,
-        //&spikyCrystal
     };
+    modelNames[&blueCrystal] = "blue";
+    modelNames[&redCrystal] = "red";
+    modelNames[&greenCrystal] = "green";
+    modelNames[&orangeCrystal] = "orange";
+    modelNames[&purpleCrystal] = "purple";
+    modelNames[&yellowCrystal] = "yellow";
+    modelNames[&lgPurpCrystal] = "lgPurp";
+    modelNames[&lgBlueCrystal] = "lgBlue";
+    modelNames[&lgRedCrystal] = "lgRed";
+    modelNames[&lgOrangeCrystal] = "lgOrange";
+    modelNames[&lilGreenCrystal] = "lilGreen";
+    modelNames[&lilPurpCrystal] = "lilPurp";
+    modelNames[&lilOrangeCrystal] = "lilOrange";
+    modelNames[&lilRedCrystal] = "lilRed";
+
+
+
+
 
 
     for (int i = 0; i < 150; i++)
@@ -368,6 +429,57 @@ int main()
         // CAMERA FOLLOWS TERRAIN (CPU height, from terrain.cpp)
         float terrainY = GetTerrainHeight(camera.Position.x, camera.Position.z);
         camera.Position.y = glm::mix(camera.Position.y, terrainY + 2.0f, 10.0f * deltaTime);
+
+        //Camera collision with crystals
+        float cameraRadius = 0.4f;
+        for (auto& c : crystals)
+        {
+            float crystalRadius = c.model->GetWorldRadius(c.scale);
+            float minDist = cameraRadius + crystalRadius;
+            glm::vec3 center = c.model->GetWorldCenter(c.position, c.scale);
+            float dist = glm::distance(camera.Position, center);
+            float worldRadius = c.model->GetWorldRadius(c.scale);
+
+            if (dist < minDist && dist > 0.0001f)
+            {
+                glm::vec3 pushDir = glm::normalize(camera.Position - center); //push out of crystal
+                camera.Position = center + pushDir * minDist;
+            }
+        }
+
+
+        //mouse click
+        if (mouseClicked) 
+        {
+            mouseClicked = false; 
+            double mouseX, mouseY; 
+            glfwGetCursorPos(window, &mouseX, &mouseY); 
+            glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f); 
+            glm::mat4 view = camera.GetViewMatrix(); 
+            glm::vec3 ray = GetMouseRay(mouseX, mouseY, SCR_WIDTH, SCR_HEIGHT, projection, view); 
+            CrystalInstance* bestCrystal = nullptr; 
+            float bestDist = 1e9f; 
+            for (auto& c : crystals) 
+            { 
+                float radius = c.model->GetWorldRadius(c.scale); 
+                glm::vec3 center = c.model->GetWorldCenter(c.position, c.scale); 
+
+                if (RayIntersectsSphere(camera.Position, ray, center, radius)) 
+                { 
+                    float dist = glm::distance(camera.Position, center); 
+                    if (dist < bestDist) 
+                    { 
+                        bestDist = dist; 
+                        bestCrystal = &c; 
+                    } 
+                } 
+            } 
+            if (bestCrystal) 
+            { 
+                std::cout << "Clicked: " << modelNames[bestCrystal->model] << std::endl; 
+                bestCrystal->onClick(); 
+            }
+        }
 
         // render
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -446,7 +558,8 @@ int main()
             crystalShader.setMat4("model", modelMat);
 
             //detecting if the torch is on the crystal
-            glm::vec3 toCrystal = glm::normalize(c.position - camera.Position);
+            glm::vec3 center = c.model->GetWorldCenter(c.position, c.scale);
+            glm::vec3 toCrystal = glm::normalize(center - camera.Position);
             glm::vec3 torchDir = glm::normalize(camera.Front);
 
             float alignment = glm::dot(toCrystal, torchDir);
@@ -457,7 +570,7 @@ int main()
             float intensity = (alignment - outerCutOff) / (cutOff - outerCutOff);
             intensity = glm::clamp(intensity, 0.0f, 1.0f);
 
-            float dist = glm::distance(camera.Position, c.position);
+            float dist = glm::distance(camera.Position, center);
             float falloff = 1.0f - glm::clamp(dist / 12.0f, 0.0f, 1.0f);
 
             float sparkle = (c.isReal) ? (intensity * falloff) : 0.0f;
@@ -465,6 +578,7 @@ int main()
 
             // draw the crystal
             c.model->Draw(crystalShader);
+            
         }
 
         // world transformation
