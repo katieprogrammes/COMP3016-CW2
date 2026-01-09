@@ -23,6 +23,9 @@
 #include <cstdlib>
 #include <ctime>
 
+#include "stb_easy_font.h"
+
+
 
 using namespace physx;
 
@@ -49,6 +52,8 @@ struct CrystalInstance {
     Model* model;
     float radius;
     bool isReal = false; // default fake
+    bool found = false; 
+    std::string type;
 
     void onClick()
     {
@@ -76,10 +81,34 @@ void SpawnCrystalOnTerrain(Model* model, float x, float z)
         glm::vec3(0.0f),
         model,
         radius,
-        real 
+        real,
+        false,
+        modelNames[model]
     });
 
 }
+
+//Quest List
+std::vector<std::string> questList;
+void GenerateQuestList(int count)
+{
+    questList.clear();
+
+    // pick from the modelNames map
+    std::vector<std::string> allTypes;
+    for (auto& pair : modelNames)
+        allTypes.push_back(pair.second);
+
+    std::random_shuffle(allTypes.begin(), allTypes.end());
+
+    for (int i = 0; i < count; i++)
+        questList.push_back(allTypes[i]);
+
+    std::cout << "Quest List:\n";
+    for (auto& t : questList)
+        std::cout << " - " << t << "\n";
+}
+
 
 class MyErrorCallback : public PxErrorCallback
 {
@@ -327,20 +356,20 @@ int main()
         &lilOrangeCrystal,
         &lilRedCrystal,
     };
-    modelNames[&blueCrystal] = "blue";
-    modelNames[&redCrystal] = "red";
-    modelNames[&greenCrystal] = "green";
-    modelNames[&orangeCrystal] = "orange";
-    modelNames[&purpleCrystal] = "purple";
-    modelNames[&yellowCrystal] = "yellow";
-    modelNames[&lgPurpCrystal] = "lgPurp";
-    modelNames[&lgBlueCrystal] = "lgBlue";
-    modelNames[&lgRedCrystal] = "lgRed";
-    modelNames[&lgOrangeCrystal] = "lgOrange";
-    modelNames[&lilGreenCrystal] = "lilGreen";
-    modelNames[&lilPurpCrystal] = "lilPurp";
-    modelNames[&lilOrangeCrystal] = "lilOrange";
-    modelNames[&lilRedCrystal] = "lilRed";
+    modelNames[&blueCrystal] = "Blue";
+    modelNames[&redCrystal] = "Red";
+    modelNames[&greenCrystal] = "Green";
+    modelNames[&orangeCrystal] = "Orange";
+    modelNames[&purpleCrystal] = "Purple";
+    modelNames[&yellowCrystal] = "Yellow";
+    modelNames[&lgPurpCrystal] = "Large Purple";
+    modelNames[&lgBlueCrystal] = "Large Blue";
+    modelNames[&lgRedCrystal] = "Large Red";
+    modelNames[&lgOrangeCrystal] = "Large Orange";
+    modelNames[&lilGreenCrystal] = "Small Green";
+    modelNames[&lilPurpCrystal] = "Small Purple";
+    modelNames[&lilOrangeCrystal] = "Small Orange";
+    modelNames[&lilRedCrystal] = "Small Red";
 
     for (int i = 0; i < 75; i++)
     {
@@ -414,6 +443,9 @@ int main()
     crystalShader.setInt("texture_normal1", 1);
     crystalShader.setInt("texture_emissive1", 2);
 
+    GenerateQuestList(10);
+
+
 
 
     // render loop
@@ -460,8 +492,11 @@ int main()
             CrystalInstance* best = nullptr;
             float bestScore = -1.0f;
 
-            float maxAngle = glm::cos(glm::radians(6.0f));   // how tight the cone is (smaller angle = more precise)
-            float maxDistance = 30.0f;                       // how far you’re allowed to “click”
+            float maxAngleDeg = 6.0f;                 // how tight the cone is
+            float maxAngleRad = glm::radians(maxAngleDeg);
+            float maxDistance = 30.0f;                // max click distance
+
+            glm::vec3 camDir = glm::normalize(camera.Front);
 
             for (auto& c : crystals)
             {
@@ -473,26 +508,70 @@ int main()
                     continue;
 
                 glm::vec3 dir = toCrystal / dist;
-                float alignment = glm::dot(dir, glm::normalize(camera.Front));
+                float alignment = glm::dot(dir, camDir);
 
-                // alignment ~ 1.0 = dead center, ~0.0 = 90 degrees away
-                if (alignment > maxAngle && alignment > bestScore)
+                // angle between camera direction and crystal center
+                float angle = acos(glm::clamp(alignment, -1.0f, 1.0f));
+
+                // sphere radius in world space
+                float radius = c.model->GetWorldRadius(c.scale);
+
+                // angular radius of the crystal (how big it appears from the camera)
+                float angularRadius = asin(glm::clamp(radius / dist, -1.0f, 1.0f));
+
+                // hit if the sphere overlaps the cone
+                if (angle < maxAngleRad + angularRadius)
                 {
-                    bestScore = alignment;
-                    best = &c;
+                    // choose the most aligned crystal
+                    if (alignment > bestScore)
+                    {
+                        bestScore = alignment;
+                        best = &c;
+                    }
                 }
             }
 
             if (best)
             {
-                std::cout << "Clicked (by look): " << modelNames[best->model] << "\n";
+                std::string type = best->type;
+
+                std::cout
+                    << "Clicked (by look): "
+                    << type
+                    << " | isReal=" << best->isReal
+                    << "\n";
+
+                if (best->isReal && !best->found)
+                {
+                    // is this type in the quest list?
+                    auto it = std::find(questList.begin(), questList.end(), type);
+
+                    if (it != questList.end())
+                    {
+                        best->found = true;
+                        std::cout << "You found a quest crystal: " << type << "!\n";
+
+                        // remove from quest list
+                        questList.erase(it);
+
+                        if (questList.empty())
+                            std::cout << "Quest complete!\n";
+                    }
+                    else
+                    {
+                        std::cout << "This crystal is real, but not on your list.\n";
+                    }
+                }
+
                 best->onClick();
             }
+
             else
             {
                 std::cout << "Clicked nothing.\n";
             }
         }
+
 
         // render
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);

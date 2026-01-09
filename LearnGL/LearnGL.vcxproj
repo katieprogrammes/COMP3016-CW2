@@ -133,6 +133,7 @@ PhysXFoundation_64.lib;PhysXCooking_64.lib;assimp-vc143-mt.lib;%(AdditionalDepen
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
+    <ClInclude Include="stb_easy_font.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="terrain.h" />
   </ItemGroup>
@@ -148,6 +149,8 @@ PhysXFoundation_64.lib;PhysXCooking_64.lib;assimp-vc143-mt.lib;%(AdditionalDepen
     <None Include="shaders\crystal.vs" />
     <None Include="shaders\light_cube.fs" />
     <None Include="shaders\light_cube.vs" />
+    <None Include="shaders\ui.fs" />
+    <None Include="shaders\ui.vs" />
     <None Include="textures\colors.fs" />
     <None Include="textures\colors.vs" />
   </ItemGroup>
