@@ -108,7 +108,100 @@ void GenerateQuestList(int count)
     for (auto& t : questList)
         std::cout << " - " << t << "\n";
 }
+//showing the quest list
+GLuint textVAO = 0;
+GLuint textVBO = 0;
 
+//Quest completion
+bool questJustCompleted = false;
+float questCompleteTimer = 0.0f;
+
+
+void DrawText(Shader& shader, float x, float y, const char* text)
+{
+    static char buffer[99999]; // stb_easy_font output buffer
+
+    // Generate quads from text (each quad = 4 vertices, each vertex = 4 floats)
+    int num_quads = stb_easy_font_print(
+        x, y,
+        (char*)text,
+        NULL,
+        buffer,
+        sizeof(buffer)
+    );
+
+    if (num_quads <= 0)
+        return;
+
+    // Convert quads (4 verts) -> triangles (6 verts) for GL_TRIANGLES
+    float* src = (float*)buffer; // x,y,z,w but we only use x,y
+    std::vector<float> vertices;
+    vertices.reserve(num_quads * 6 * 2); // 6 vertices * 2 floats (x,y)
+
+    for (int i = 0; i < num_quads; ++i)
+    {
+        float x0 = src[i * 16 + 0];
+        float y0 = src[i * 16 + 1];
+
+        float x1 = src[i * 16 + 4];
+        float y1 = src[i * 16 + 5];
+
+        float x2 = src[i * 16 + 8];
+        float y2 = src[i * 16 + 9];
+
+        float x3 = src[i * 16 + 12];
+        float y3 = src[i * 16 + 13];
+
+        // Two triangles: (0,1,2) and (0,2,3)
+
+        // Triangle 1
+        vertices.push_back(x0); vertices.push_back(y0);
+        vertices.push_back(x1); vertices.push_back(y1);
+        vertices.push_back(x2); vertices.push_back(y2);
+
+        // Triangle 2
+        vertices.push_back(x0); vertices.push_back(y0);
+        vertices.push_back(x2); vertices.push_back(y2);
+        vertices.push_back(x3); vertices.push_back(y3);
+    }
+
+    if (textVAO == 0)
+    {
+        glGenVertexArrays(1, &textVAO);
+        glGenBuffers(1, &textVBO);
+    }
+
+    glBindVertexArray(textVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+
+    glBufferData(GL_ARRAY_BUFFER,
+        vertices.size() * sizeof(float),
+        vertices.data(),
+        GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        0,              // layout(location = 0)
+        2,              // vec2
+        GL_FLOAT,
+        GL_FALSE,
+        2 * sizeof(float),
+        (void*)0
+    );
+
+    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices.size() / 2));
+
+    glDisableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+float GetTextWidth(const char* text)
+{
+    // stb_easy_font prints each character as a 4‑vertex quad
+    // Each quad is 8 pixels wide by default
+    int len = strlen(text);
+    return len * 8.0f;
+}
 
 class MyErrorCallback : public PxErrorCallback
 {
@@ -321,6 +414,7 @@ int main()
     Shader lightingShader("textures/colors.vs", "textures/colors.fs");
     Shader lightCubeShader("shaders/light_cube.vs", "shaders/light_cube.fs");
     Shader crystalShader("shaders/crystal.vs", "shaders/crystal.fs");
+    Shader uiShader("shaders/ui.vs", "shaders/ui.fs");
 
     //randomise crystals for each launch
     crystals.clear();
@@ -698,6 +792,48 @@ int main()
         model = glm::scale(model, glm::vec3(0.2f));
         lightCubeShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        //UI render
+        glDisable(GL_DEPTH_TEST);
+
+        // Build orthographic projection
+        glm::mat4 uiProjection = glm::ortho(
+            0.0f, (float)SCR_WIDTH,
+            (float)SCR_HEIGHT, 0.0f,
+            -1.0f, 1.0f
+        );
+
+        uiShader.use();
+        uiShader.setMat4("projection", uiProjection);
+
+        // Draw quest list
+        float y = 20.0f;
+        DrawText(uiShader, 20, y, "QUEST LIST:");
+        y += 20;
+
+        for (auto& type : questList)
+        {
+            std::string line = " - " + type;
+            DrawText(uiShader, 20, y, line.c_str());
+            y += 20;
+        }
+
+        if (questJustCompleted)
+        {
+            const char* msg = "QUEST COMPLETE!";
+            float textWidth = GetTextWidth(msg);
+
+            float x = (SCR_WIDTH - textWidth) * 0.5f;  // center horizontally
+            float yText = 200.0f;                      // vertical position
+
+            DrawText(uiShader, x, yText, msg);
+
+            questCompleteTimer -= deltaTime;
+            if (questCompleteTimer <= 0.0f)
+                questJustCompleted = false;
+        }
+
+        glEnable(GL_DEPTH_TEST);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
