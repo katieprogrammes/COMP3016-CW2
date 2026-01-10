@@ -26,8 +26,10 @@
 #include "stb_easy_font.h"
 #include "skybox.h"
 
+#include <sound/irrKlang.h>
 
 
+using namespace irrklang;
 using namespace physx;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
