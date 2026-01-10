@@ -414,7 +414,7 @@ int main()
         std::cout << "Failed to initialize irrKlang!" << std::endl; return -1; 
     }
     //background music
-    //soundEngine->play2D("media/audio/ambient.mp3", true);
+    soundEngine->play2D("media/audio/background.wav", true);
     //terrain
     unsigned int terrainTexture = loadTexture("media/rockytext.jpg");
     Terrain terrain = CreateTerrain();
