@@ -133,6 +133,7 @@ PhysXFoundation_64.lib;PhysXCooking_64.lib;assimp-vc143-mt.lib;%(AdditionalDepen
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
+    <ClInclude Include="skybox.h" />
     <ClInclude Include="stb_easy_font.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="terrain.h" />
@@ -140,6 +141,7 @@ PhysXFoundation_64.lib;PhysXCooking_64.lib;assimp-vc143-mt.lib;%(AdditionalDepen
   <ItemGroup>
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="skybox.cpp" />
     <ClCompile Include="Solution.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="terrain.cpp" />
@@ -149,6 +151,8 @@ PhysXFoundation_64.lib;PhysXCooking_64.lib;assimp-vc143-mt.lib;%(AdditionalDepen
     <None Include="shaders\crystal.vs" />
     <None Include="shaders\light_cube.fs" />
     <None Include="shaders\light_cube.vs" />
+    <None Include="shaders\skybox.fs" />
+    <None Include="shaders\skybox.vs" />
     <None Include="shaders\ui.fs" />
     <None Include="shaders\ui.vs" />
     <None Include="textures\colors.fs" />

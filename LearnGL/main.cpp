@@ -24,6 +24,7 @@
 #include <ctime>
 
 #include "stb_easy_font.h"
+#include "skybox.h"
 
 
 
@@ -412,9 +413,23 @@ int main()
 
     // build and compile shader programs
     Shader lightingShader("textures/colors.vs", "textures/colors.fs");
-    Shader lightCubeShader("shaders/light_cube.vs", "shaders/light_cube.fs");
     Shader crystalShader("shaders/crystal.vs", "shaders/crystal.fs");
     Shader uiShader("shaders/ui.vs", "shaders/ui.fs");
+    Shader skyboxShader("shaders/skybox.vs", "shaders/skybox.fs");
+
+
+    //skybox textures
+    std::vector<std::string> faces = {
+    "media/skybox/stars1.png",
+    "media/skybox/stars1.png",
+    "media/skybox/stars1.png",
+    "media/skybox/stars1.png",
+    "media/skybox/stars1.png",
+    "media/skybox/stars1.png"
+    };
+
+
+    Skybox skybox(faces);
 
     //randomise crystals for each launch
     crystals.clear();
@@ -507,23 +522,6 @@ int main()
         }
     }
 
-    //lightcube
-    unsigned int lightCubeVAO, VBO;
-    float cubeVerts[] = {
-        -0.5f,-0.5f,-0.5f,  0.5f,-0.5f,-0.5f,  0.5f,0.5f,-0.5f,
-         0.5f,0.5f,-0.5f, -0.5f,0.5f,-0.5f, -0.5f,-0.5f,-0.5f,
-        -0.5f,-0.5f,0.5f,   0.5f,-0.5f,0.5f,   0.5f,0.5f,0.5f,
-         0.5f,0.5f,0.5f,  -0.5f,0.5f,0.5f,  -0.5f,-0.5f,0.5f
-    };
-
-    glGenVertexArrays(1, &lightCubeVAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(lightCubeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVerts), cubeVerts, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
 
     glm::vec3 pointLightPosition(0.0f, 20.0f, 0.0f);
 
@@ -545,6 +543,7 @@ int main()
     // render loop
     while (!glfwWindowShouldClose(window))
     {
+
         // per-frame time logic
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -667,6 +666,7 @@ int main()
         }
 
 
+
         // render
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -715,7 +715,8 @@ int main()
         lightingShader.setMat4("projection", projection);
         lightingShader.setMat4("view", view);
         
-        
+        skybox.Draw(view, projection);
+
         //draw crystal
         crystalShader.use();
         crystalShader.setMat4("projection", projection);
@@ -782,16 +783,6 @@ int main()
         glBindVertexArray(terrain.VAO);
         glDrawElements(GL_TRIANGLES, terrain.indexCount, GL_UNSIGNED_INT, 0);
 
-        // also draw the lamp object
-        lightCubeShader.use();
-        lightCubeShader.setMat4("projection", projection);
-        lightCubeShader.setMat4("view", view);
-        
-        glBindVertexArray(lightCubeVAO);
-        model = glm::translate(glm::mat4(1.0f), pointLightPosition);
-        model = glm::scale(model, glm::vec3(0.2f));
-        lightCubeShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         //UI render
         glDisable(GL_DEPTH_TEST);
@@ -840,9 +831,6 @@ int main()
         glfwPollEvents();
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    glDeleteVertexArrays(1, &lightCubeVAO);
-    glDeleteBuffers(1, &VBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.    
     glfwTerminate();
