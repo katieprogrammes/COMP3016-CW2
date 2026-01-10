@@ -46,6 +46,9 @@ PxScene* gScene = nullptr;
 PxDefaultAllocator gAllocator;
 std::unordered_map<Model*, std::string> modelNames;
 
+//audio
+irrklang::ISoundEngine* soundEngine = nullptr;
+
 
 //crystal model structure
 struct CrystalInstance {
@@ -404,6 +407,14 @@ int main()
     // configure global opengl state
     glEnable(GL_DEPTH_TEST);
 
+    //audio logic
+    soundEngine = createIrrKlangDevice(); 
+    if (!soundEngine) 
+    { 
+        std::cout << "Failed to initialize irrKlang!" << std::endl; return -1; 
+    }
+    //background music
+    //soundEngine->play2D("media/audio/ambient.mp3", true);
     //terrain
     unsigned int terrainTexture = loadTexture("media/rockytext.jpg");
     Terrain terrain = CreateTerrain();
@@ -646,6 +657,9 @@ int main()
                         best->found = true;
                         std::cout << "You found a quest crystal: " << type << "!\n";
 
+                        //play sound
+                        soundEngine->play2D("media/audio/foundNoise.wav", false);
+
                         // remove from quest list
                         questList.erase(it);
 
@@ -836,6 +850,7 @@ int main()
 
     // glfw: terminate, clearing all previously allocated GLFW resources.    
     glfwTerminate();
+    soundEngine->drop();
     return 0;
 }
 
