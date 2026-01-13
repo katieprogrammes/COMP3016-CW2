@@ -12,9 +12,6 @@
 
 #include "terrain.h"
 
-#include <PxPhysicsAPI.h> 
-#include <cooking/PxCooking.h>
-
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -30,7 +27,6 @@
 
 
 using namespace irrklang;
-using namespace physx;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -38,12 +34,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 unsigned int loadTexture(const char* path);
 
-//physX
-PxFoundation* gFoundation = nullptr;
-PxPhysics* gPhysics = nullptr;
-PxScene* gScene = nullptr;
 
-PxDefaultAllocator gAllocator;
 std::unordered_map<Model*, std::string> modelNames;
 
 //audio
@@ -209,137 +200,6 @@ float GetTextWidth(const char* text)
     return len * 8.0f;
 }
 
-class MyErrorCallback : public PxErrorCallback
-{
-public:
-    void reportError(PxErrorCode::Enum code, const char* message, const char* file, int line) override
-    {
-        printf("PhysX Error (%d): %s at %s:%d\n", code, message, file, line);
-    }
-};
-
-MyErrorCallback gErrorCallback;
-
-
-class MyCpuDispatcher : public physx::PxCpuDispatcher
-{
-public:
-    void submitTask(PxBaseTask& task) override
-    {
-        task.run();
-        task.release();
-    }
-
-    uint32_t getWorkerCount() const override
-    {
-        return 1;
-    }
-};
-
-MyCpuDispatcher gDispatcher;
-
-PxFilterFlags MyFilterShader(
-    PxFilterObjectAttributes a0, PxFilterData d0,
-    PxFilterObjectAttributes a1, PxFilterData d1,
-    PxPairFlags& pairFlags, const void*, PxU32)
-{
-    pairFlags = PxPairFlag::eCONTACT_DEFAULT;
-    return PxFilterFlag::eDEFAULT;
-}
-
-
-void InitPhysX()
-{
-    PxTolerancesScale scale;
-    gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
-    gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, scale);
-
-    PxSceneDesc sceneDesc(scale);
-    sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
-    sceneDesc.cpuDispatcher = &gDispatcher;
-    sceneDesc.filterShader = MyFilterShader;
-
-    gScene = gPhysics->createScene(sceneDesc);
-}
-
-
-PxRigidStatic* CreatePhysXHeightfield()
-{
-    const auto& verts = GetTerrainVertices();
-
-    PxHeightFieldDesc hfDesc;
-    hfDesc.nbRows = TERRAIN_SIZE;
-    hfDesc.nbColumns = TERRAIN_SIZE;
-    hfDesc.format = PxHeightFieldFormat::eS16_TM;
-
-    std::vector<PxHeightFieldSample> samples;
-    samples.resize(TERRAIN_SIZE * TERRAIN_SIZE);
-
-    // Simple row/col mapping that matches terrain vertices (x = column, z = row)
-    for (int z = 0; z < TERRAIN_SIZE; z++)
-    {
-        for (int x = 0; x < TERRAIN_SIZE; x++)
-        {
-            int terrainIndex = z * TERRAIN_SIZE + x;
-            int physxIndex = z * TERRAIN_SIZE + x;
-
-            float h = verts[terrainIndex].pos.y;
-
-            PxHeightFieldSample& s = samples[physxIndex];
-            s.height = (PxI16)h;
-            s.materialIndex0 = 0;
-            s.materialIndex1 = 0;
-        }
-    }
-
-    hfDesc.samples.data = samples.data();
-    hfDesc.samples.stride = sizeof(PxHeightFieldSample);
-
-    PxHeightField* heightField = PxCreateHeightField(hfDesc);
-    if (!heightField) {
-        std::cout << "Failed to create PhysX heightfield" << std::endl;
-        return nullptr;
-    }
-
-    PxHeightFieldGeometry hfGeom(
-        heightField,
-        PxMeshGeometryFlags(),
-        1.0f,          // height scale
-        TERRAIN_SCALE, // row scale (X)
-        TERRAIN_SCALE  // column scale (Z)
-    );
-
-    PxMaterial* mat = gPhysics->createMaterial(0.5f, 0.5f, 0.5f);
-
-    PxTransform pose(PxVec3(
-        0.5f * TERRAIN_SCALE,
-        0.0f,
-        0.5f * TERRAIN_SCALE
-    ));
-
-    PxRigidStatic* terrainActor = gPhysics->createRigidStatic(pose);
-    PxShape* shape = gPhysics->createShape(hfGeom, *mat);
-    terrainActor->attachShape(*shape);
-
-    gScene->addActor(*terrainActor);
-
-    return terrainActor;
-}
-
-
-float GetPhysicsTerrainHeight(float x, float z) {
-    PxVec3 origin(x, 500.0f, z);
-    PxRaycastBuffer hit;
-    bool ok = gScene->raycast(PxVec3(0, 500, 0), PxVec3(0, -1, 0), 500, hit);
-    std::cout << ok << " " << hit.block.position.y << std::endl;
-
-
-
-    if (gScene->raycast(origin, PxVec3(0, -1, 0), 500.0f, hit))
-        return hit.block.position.y;
-
-    return 0.0f;
-}
 
 // window settings
 const unsigned int SCR_WIDTH = 1080;
@@ -419,11 +279,6 @@ int main()
     unsigned int terrainTexture = loadTexture("media/rockytext.jpg");
     Terrain terrain = CreateTerrain();
 
-
-    //physx
-    InitPhysX();
-    CreatePhysXHeightfield();
-
     // build and compile shader programs
     Shader lightingShader("textures/colors.vs", "textures/colors.fs");
     Shader crystalShader("shaders/crystal.vs", "shaders/crystal.fs");
@@ -493,7 +348,7 @@ int main()
     modelNames[&lilOrangeCrystal] = "Small Orange";
     modelNames[&lilRedCrystal] = "Small Red";
 
-    for (int i = 0; i < 75; i++)
+    for (int i = 0; i < 150; i++)
     {
         Model* model = crystalModels[rand() % crystalModels.size()];
 
@@ -548,7 +403,7 @@ int main()
     crystalShader.setInt("texture_normal1", 1);
     crystalShader.setInt("texture_emissive1", 2);
 
-    GenerateQuestList(10);
+    GenerateQuestList(5);
 
 
 
@@ -564,12 +419,6 @@ int main()
 
         // input
         processInput(window);
-
-        // Step PhysX scene (for future dynamic actors)
-        if (gScene && deltaTime > 0.0f) {
-            gScene->simulate(deltaTime);
-            gScene->fetchResults(true);
-        }
 
         // CAMERA FOLLOWS TERRAIN (CPU height, from terrain.cpp)
         float terrainY = GetTerrainHeight(camera.Position.x, camera.Position.z);
