@@ -25,6 +25,10 @@
 
 #include <sound/irrKlang.h>
 
+#include <random>
+#include <algorithm>
+
+
 
 using namespace irrklang;
 
@@ -35,11 +39,11 @@ void processInput(GLFWwindow* window);
 unsigned int loadTexture(const char* path);
 
 
-std::unordered_map<Model*, std::string> modelNames;
-
 //audio
 irrklang::ISoundEngine* soundEngine = nullptr;
 
+//crystal names
+std::unordered_map<Model*, std::string> modelNames;
 
 //crystal model structure
 struct CrystalInstance {
@@ -48,7 +52,7 @@ struct CrystalInstance {
     glm::vec3 rotation;
     Model* model;
     float radius;
-    bool isReal = false; // default fake
+    bool isReal = false;
     bool found = false; 
     std::string type;
 
@@ -62,15 +66,14 @@ std::vector<CrystalInstance> crystals;
 void SpawnCrystalOnTerrain(Model* model, float x, float z) 
 {
     float y = GetTerrainHeight(x, z);
-    bool real = (rand() % 5 == 0); // 20% chance real
+    bool real = (rand() % 5 == 0); //chance if crystal is real
 
-    //Normalise height
+    //normalising crystal height
     float desiredRadius = 1.5f;
     float scaleFactor = desiredRadius / model->boundingRadius;
     glm::vec3 scale(scaleFactor);
 
     float radius = model->GetWorldRadius(glm::vec3(scaleFactor));
-
 
     crystals.push_back({ 
         glm::vec3(x,y,z), 
@@ -82,16 +85,15 @@ void SpawnCrystalOnTerrain(Model* model, float x, float z)
         false,
         modelNames[model]
     });
-
 }
 
-//Quest List
+//quest list
 std::vector<std::string> questList;
 void GenerateQuestList(int count)
 {
     questList.clear();
 
-    // pick from the modelNames map
+    
     std::vector<std::string> allTypes;
     for (auto& pair : modelNames)
         allTypes.push_back(pair.second);
@@ -109,16 +111,16 @@ void GenerateQuestList(int count)
 GLuint textVAO = 0;
 GLuint textVBO = 0;
 
-//Quest completion
-bool questJustCompleted = false;
-float questCompleteTimer = 0.0f;
+//quest completion
+bool questCompleted = false;
+float questCompleteTimer = 3.0f;
 
 
-void DrawText(Shader& shader, float x, float y, const char* text)
+void DrawText(Shader& shader, float x, float y, const char* text, float scale)
 {
-    static char buffer[99999]; // stb_easy_font output buffer
+    static char buffer[99999]; //stb easy font required output buffer
 
-    // Generate quads from text (each quad = 4 vertices, each vertex = 4 floats)
+    //logic to make text visible
     int num_quads = stb_easy_font_print(
         x, y,
         (char*)text,
@@ -130,10 +132,10 @@ void DrawText(Shader& shader, float x, float y, const char* text)
     if (num_quads <= 0)
         return;
 
-    // Convert quads (4 verts) -> triangles (6 verts) for GL_TRIANGLES
-    float* src = (float*)buffer; // x,y,z,w but we only use x,y
+    //vertices for text
+    float* src = (float*)buffer;
     std::vector<float> vertices;
-    vertices.reserve(num_quads * 6 * 2); // 6 vertices * 2 floats (x,y)
+    vertices.reserve(num_quads * 6 * 2);
 
     for (int i = 0; i < num_quads; ++i)
     {
@@ -149,17 +151,14 @@ void DrawText(Shader& shader, float x, float y, const char* text)
         float x3 = src[i * 16 + 12];
         float y3 = src[i * 16 + 13];
 
-        // Two triangles: (0,1,2) and (0,2,3)
+        vertices.push_back(x0 * scale); vertices.push_back(y0 * scale);
+        vertices.push_back(x1 * scale); vertices.push_back(y1 * scale);
+        vertices.push_back(x2 * scale); vertices.push_back(y2 * scale);
 
-        // Triangle 1
-        vertices.push_back(x0); vertices.push_back(y0);
-        vertices.push_back(x1); vertices.push_back(y1);
-        vertices.push_back(x2); vertices.push_back(y2);
+        vertices.push_back(x0 * scale); vertices.push_back(y0 * scale);
+        vertices.push_back(x2 * scale); vertices.push_back(y2 * scale);
+        vertices.push_back(x3 * scale); vertices.push_back(y3 * scale);
 
-        // Triangle 2
-        vertices.push_back(x0); vertices.push_back(y0);
-        vertices.push_back(x2); vertices.push_back(y2);
-        vertices.push_back(x3); vertices.push_back(y3);
     }
 
     if (textVAO == 0)
@@ -177,14 +176,7 @@ void DrawText(Shader& shader, float x, float y, const char* text)
         GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0,              // layout(location = 0)
-        2,              // vec2
-        GL_FLOAT,
-        GL_FALSE,
-        2 * sizeof(float),
-        (void*)0
-    );
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,2 * sizeof(float),(void*)0);
 
     glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices.size() / 2));
 
@@ -192,12 +184,9 @@ void DrawText(Shader& shader, float x, float y, const char* text)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
-float GetTextWidth(const char* text)
+float GetTextWidth(const char* text, float scale)
 {
-    // stb_easy_font prints each character as a 4‑vertex quad
-    // Each quad is 8 pixels wide by default
-    int len = strlen(text);
-    return len * 8.0f;
+    return strlen(text) * 8.0f * scale;
 }
 
 
@@ -390,6 +379,28 @@ int main()
         }
     }
 
+    // Build a list of types that actually spawned
+    std::vector<std::string> spawnedTypes;
+    spawnedTypes.reserve(crystals.size());
+
+    for (auto& c : crystals)
+    {
+        if (c.isReal)  // if all crystals are real, remove this check
+            spawnedTypes.push_back(c.type);
+    }
+
+   
+    // Shuffle and pick quest items
+    std::shuffle(spawnedTypes.begin(), spawnedTypes.end(), std::mt19937(std::random_device{}()));
+
+    questList.clear();
+
+    int questCount = 10; // or however many you want
+    for (int i = 0; i < questCount && i < spawnedTypes.size(); i++)
+    {
+        questList.push_back(spawnedTypes[i]);
+    }
+
 
     glm::vec3 pointLightPosition(0.0f, 20.0f, 0.0f);
 
@@ -512,8 +523,12 @@ int main()
                         // remove from quest list
                         questList.erase(it);
 
-                        if (questList.empty())
-                            std::cout << "Quest complete!\n";
+                        if (questList.empty() && !questCompleted)
+                        {
+                            questCompleted = true;
+                            std::cout << " QUEST COMPLETE! \n";
+                            soundEngine->play2D("media/audio/complete.wav", false);
+                        }
                     }
                     else
                     {
@@ -663,30 +678,32 @@ int main()
         uiShader.setMat4("projection", uiProjection);
 
         // Draw quest list
+        float scale = 1.5f;
         float y = 20.0f;
-        DrawText(uiShader, 20, y, "QUEST LIST:");
+        DrawText(uiShader, 20, y, "QUEST LIST:", scale);
         y += 20;
 
         for (auto& type : questList)
         {
             std::string line = " - " + type;
-            DrawText(uiShader, 20, y, line.c_str());
+            DrawText(uiShader, 20, y, line.c_str(), scale);
             y += 20;
         }
 
-        if (questJustCompleted)
+        if (questCompleted)
         {
             const char* msg = "QUEST COMPLETE!";
-            float textWidth = GetTextWidth(msg);
+            float scale = 4.0f;
+            float textWidth = GetTextWidth(msg, scale);
 
             float x = (SCR_WIDTH - textWidth) * 0.5f;  // center horizontally
             float yText = 200.0f;                      // vertical position
 
-            DrawText(uiShader, x, yText, msg);
+            DrawText(uiShader, x, yText, msg, scale);
 
             questCompleteTimer -= deltaTime;
             if (questCompleteTimer <= 0.0f)
-                questJustCompleted = false;
+                questCompleted = false;
         }
 
         glEnable(GL_DEPTH_TEST);
