@@ -195,7 +195,7 @@ const unsigned int SCR_WIDTH = 1080;
 const unsigned int SCR_HEIGHT = 720;
 
 // camera
-Camera camera(glm::vec3(100.0f, 50.0f, 100.0f));
+Camera camera(glm::vec3(50.0f, 50.0f, 100.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -223,8 +223,8 @@ int main()
 
     // glfw: initialize and configure
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
@@ -265,7 +265,7 @@ int main()
     //background music
     soundEngine->play2D("media/audio/background.wav", true);
     //terrain
-    unsigned int terrainTexture = loadTexture("media/rockytext.jpg");
+    unsigned int terrainTexture = loadTexture("media/terrain.png");
     Terrain terrain = CreateTerrain();
 
     // build and compile shader programs
