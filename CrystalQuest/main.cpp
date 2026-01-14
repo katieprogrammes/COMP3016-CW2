@@ -113,7 +113,11 @@ GLuint textVBO = 0;
 
 //quest completion
 bool questCompleted = false;
-float questCompleteTimer = 3.0f;
+float questCompleteTimer = 0.0f;
+
+//incorrect crystal text
+bool showIncorrectMessage = false;
+float incorrectMessageTimer = 0.0f;
 
 
 void DrawText(Shader& shader, float x, float y, const char* text, float scale)
@@ -186,13 +190,36 @@ void DrawText(Shader& shader, float x, float y, const char* text, float scale)
 }
 float GetTextWidth(const char* text, float scale)
 {
-    return strlen(text) * 8.0f * scale;
+    char buffer[99999];
+
+    // Generate quads at origin (0,0)
+    int num_quads = stb_easy_font_print(
+        0, 0,
+        (char*)text,
+        NULL,
+        buffer,
+        sizeof(buffer)
+    );
+
+    float maxX = 0.0f;
+
+    float* src = (float*)buffer;
+
+    for (int i = 0; i < num_quads; i++)
+    {
+        float x2 = src[i * 16 + 8]; // top-right x of quad
+        if (x2 > maxX)
+            maxX = x2;
+    }
+
+    return maxX * scale;
 }
 
 
+
 // window settings
-const unsigned int SCR_WIDTH = 1080;
-const unsigned int SCR_HEIGHT = 720;
+const unsigned int SCR_WIDTH = 1920;
+const unsigned int SCR_HEIGHT = 1080;
 
 // camera
 Camera camera(glm::vec3(50.0f, 50.0f, 100.0f));
@@ -215,6 +242,115 @@ void mouse_click_callback(GLFWwindow* window, int button, int action, int mods)
         mouseClicked = true;
     }
 }
+
+//dev crystal globals
+CrystalInstance devCrystal;
+Model* devCrystalModelPtr = nullptr;
+bool devCrystalSpawned = false;
+int devCrystalIndex = -1;
+
+
+bool showDevMessage = false;
+float devMessageTimer = 0.0f;
+
+bool showDevHint = false;
+float devHintTimer = 0.0f;
+
+
+//handling crystal clicking
+void HandleCrystalClick()
+{
+    if (!mouseClicked)
+        return;
+
+    mouseClicked = false;
+
+    CrystalInstance* best = nullptr;
+    float bestScore = -1.0f;
+
+    float maxAngleDeg = 6.0f;
+    float maxAngleRad = glm::radians(maxAngleDeg);
+    float maxDistance = 30.0f;
+
+    glm::vec3 camDir = glm::normalize(camera.Front);
+
+    for (auto& c : crystals)
+    {
+        if (!c.model) continue;
+
+        glm::vec3 center = c.model->GetWorldCenter(c.position, c.scale);
+        glm::vec3 toCrystal = center - camera.Position;
+
+        float dist = glm::length(toCrystal);
+        if (dist > maxDistance)
+            continue;
+
+        glm::vec3 dir = toCrystal / dist;
+        float alignment = glm::dot(dir, camDir);
+
+        float angle = acos(glm::clamp(alignment, -1.0f, 1.0f));
+        float radius = c.model->GetWorldRadius(c.scale);
+        float angularRadius = asin(glm::clamp(radius / dist, -1.0f, 1.0f));
+
+        if (angle < maxAngleRad + angularRadius)
+        {
+            if (alignment > bestScore)
+            {
+                bestScore = alignment;
+                best = &c;
+            }
+        }
+    }
+
+    if (!best)
+    {
+        std::cout << "Clicked nothing.\n";
+        return;
+    }
+
+    std::string type = best->type;
+
+    std::cout << "Clicked (by look): " << type
+        << " | isReal=" << best->isReal << "\n";
+
+    if (best->isReal && !best->found)
+    {
+        auto it = std::find(questList.begin(), questList.end(), type);
+
+        if (it != questList.end())
+        {
+            best->found = true;
+            std::cout << "You found a quest crystal: " << type << "!\n";
+
+            soundEngine->play2D("media/audio/foundNoise.wav", false);
+
+            questList.erase(it);
+
+            // Quest Complete
+            if (questList.empty() && !questCompleted)
+            {
+                questCompleted = true;
+                questCompleteTimer = 3.0f;
+
+                std::cout << " QUEST COMPLETE! \n";
+                soundEngine->play2D("media/audio/complete.wav", false);
+
+                mouseClicked = false;
+            }
+        }
+        else
+        {
+            showIncorrectMessage = true;
+            incorrectMessageTimer = 2.5f;
+            std::cout << "This crystal is real, but not on your list.\n";
+        }
+    }
+
+    best->onClick();
+}
+
+
+
 
 int main()
 {
@@ -306,6 +442,10 @@ int main()
     Model lilPurpCrystal("media/gems/lilpurp.gltf");
     Model lilOrangeCrystal("media/gems/lilorange.gltf");
     Model lilRedCrystal("media/gems/lilred.gltf");
+    Model devCrystalModel("media/gems/dev.gltf");
+    devCrystalModelPtr = &devCrystalModel;
+
+
 
     std::vector<Model*> crystalModels = { 
         &redCrystal, 
@@ -337,7 +477,7 @@ int main()
     modelNames[&lilOrangeCrystal] = "Small Orange";
     modelNames[&lilRedCrystal] = "Small Red";
 
-    for (int i = 0; i < 150; i++)
+    for (int i = 0; i < 200; i++)
     {
         Model* model = crystalModels[rand() % crystalModels.size()];
 
@@ -414,10 +554,7 @@ int main()
     crystalShader.setInt("texture_normal1", 1);
     crystalShader.setInt("texture_emissive1", 2);
 
-    GenerateQuestList(5);
-
-
-
+    GenerateQuestList(1);
 
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -450,102 +587,7 @@ int main()
             }
         }
 
-
-        if (mouseClicked)
-        {
-            mouseClicked = false;
-
-            CrystalInstance* best = nullptr;
-            float bestScore = -1.0f;
-
-            float maxAngleDeg = 6.0f;                 // how tight the cone is
-            float maxAngleRad = glm::radians(maxAngleDeg);
-            float maxDistance = 30.0f;                // max click distance
-
-            glm::vec3 camDir = glm::normalize(camera.Front);
-
-            for (auto& c : crystals)
-            {
-                glm::vec3 center = c.model->GetWorldCenter(c.position, c.scale);
-                glm::vec3 toCrystal = center - camera.Position;
-
-                float dist = glm::length(toCrystal);
-                if (dist > maxDistance)
-                    continue;
-
-                glm::vec3 dir = toCrystal / dist;
-                float alignment = glm::dot(dir, camDir);
-
-                // angle between camera direction and crystal center
-                float angle = acos(glm::clamp(alignment, -1.0f, 1.0f));
-
-                // sphere radius in world space
-                float radius = c.model->GetWorldRadius(c.scale);
-
-                // angular radius of the crystal (how big it appears from the camera)
-                float angularRadius = asin(glm::clamp(radius / dist, -1.0f, 1.0f));
-
-                // hit if the sphere overlaps the cone
-                if (angle < maxAngleRad + angularRadius)
-                {
-                    // choose the most aligned crystal
-                    if (alignment > bestScore)
-                    {
-                        bestScore = alignment;
-                        best = &c;
-                    }
-                }
-            }
-
-            if (best)
-            {
-                std::string type = best->type;
-
-                std::cout
-                    << "Clicked (by look): "
-                    << type
-                    << " | isReal=" << best->isReal
-                    << "\n";
-
-                if (best->isReal && !best->found)
-                {
-                    // is this type in the quest list?
-                    auto it = std::find(questList.begin(), questList.end(), type);
-
-                    if (it != questList.end())
-                    {
-                        best->found = true;
-                        std::cout << "You found a quest crystal: " << type << "!\n";
-
-                        //play sound
-                        soundEngine->play2D("media/audio/foundNoise.wav", false);
-
-                        // remove from quest list
-                        questList.erase(it);
-
-                        if (questList.empty() && !questCompleted)
-                        {
-                            questCompleted = true;
-                            std::cout << " QUEST COMPLETE! \n";
-                            soundEngine->play2D("media/audio/complete.wav", false);
-                        }
-                    }
-                    else
-                    {
-                        std::cout << "This crystal is real, but not on your list.\n";
-                    }
-                }
-
-                best->onClick();
-            }
-
-            else
-            {
-                std::cout << "Clicked nothing.\n";
-            }
-        }
-
-
+        HandleCrystalClick();
 
         // render
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -678,7 +720,7 @@ int main()
         uiShader.setMat4("projection", uiProjection);
 
         // Draw quest list
-        float scale = 1.5f;
+        float scale = 2.5f;
         float y = 20.0f;
         DrawText(uiShader, 20, y, "QUEST LIST:", scale);
         y += 20;
@@ -696,7 +738,7 @@ int main()
             float scale = 4.0f;
             float textWidth = GetTextWidth(msg, scale);
 
-            float x = (SCR_WIDTH - textWidth) * 0.5f;  // center horizontally
+            float x = SCR_WIDTH * 0.5f - 770.0f;  // center horizontally
             float yText = 200.0f;                      // vertical position
 
             DrawText(uiShader, x, yText, msg, scale);
@@ -705,6 +747,84 @@ int main()
             if (questCompleteTimer <= 0.0f)
                 questCompleted = false;
         }
+        if (showIncorrectMessage) {
+            const char* msg = "This crystal is real but not on your quest list";
+            float scale = 3.0f;
+
+            float x = SCR_WIDTH * 0.5f - 750.0f;
+            float y = 25.0f;
+
+            DrawText(uiShader, x, y, msg, scale);
+
+            incorrectMessageTimer -= deltaTime;
+            if (incorrectMessageTimer <= 0.0f)
+                showIncorrectMessage = false;
+        }
+        if (showDevHint)
+        {
+            const char* msg = "A strange crystal has appeared nearby...";
+            float scale = 1.8f;
+
+            float x = SCR_WIDTH * 0.5f - 300.0f;
+            float y = 200.0f;
+
+            DrawText(uiShader, x, y, msg, scale);
+
+            devHintTimer -= deltaTime;
+            if (devHintTimer <= 0.0f)
+                showDevHint = false;
+        }
+        if (showDevMessage)
+        {
+            const char* msg1 = "Created by Katie Hayman";
+            const char* msg2 = "Thanks for playing!";
+
+            float scale1 = 2.0f;
+            float scale2 = 1.5f;
+
+            float x1 = SCR_WIDTH * 0.5f - 750.0f;
+            float y1 = 250.0f;
+
+            float x2 = SCR_WIDTH * 0.5f - 750.0f;
+            float y2 = 300.0f;
+
+            DrawText(uiShader, x1, y1, msg1, scale1);
+            DrawText(uiShader, x2, y2, msg2, scale2);
+
+            devMessageTimer -= deltaTime;
+            if (devMessageTimer <= 0.0f)
+                showDevMessage = false;
+        }
+
+
+        // How to Play UI
+        {
+            float scale = 2.0f;
+            float y = 20.0f;
+
+            float x = SCR_WIDTH - 1145;   //padding
+
+            DrawText(uiShader, x, y, "HOW TO PLAY", scale);
+            y += 30;
+
+            DrawText(uiShader, x, y, "WASD - Move", scale);
+            y += 15;
+
+            DrawText(uiShader, x, y, "Mouse - Look", scale);
+            y += 15;
+
+            DrawText(uiShader, x, y, "Left Click - Select Crystal", scale);
+            y += 20;
+
+            DrawText(uiShader, x, y, "Use Torch to Identify Real", scale);
+            y += 15;
+
+            DrawText(uiShader, x, y, "Crystals", scale);
+            y += 20;
+
+            DrawText(uiShader, x, y, "Find All Crystals in Quest List", scale);
+        }
+
 
         glEnable(GL_DEPTH_TEST);
 
@@ -735,6 +855,13 @@ void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.Position -= forward * speed;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.Position -= right * speed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.Position += right * speed;
+
+    //boundary clamp to prevent walking off terrain
+    float minX = 1.0f; 
+    float maxX = (float)TERRAIN_SIZE - 2.0f; 
+    float minZ = 1.0f; float maxZ = (float)TERRAIN_SIZE - 2.0f; 
+    camera.Position.x = glm::clamp(camera.Position.x, minX, maxX); 
+    camera.Position.z = glm::clamp(camera.Position.z, minZ, maxZ);
 }
 
 
