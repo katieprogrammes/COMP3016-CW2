@@ -86,3 +86,58 @@ The flashlight mechanic helps the player identify real crystals. Real crystals g
 
 ![20260114-1620-24 4210765](https://github.com/user-attachments/assets/17801c75-eebf-45cb-ad3c-e8f3e2c87efc)
 
+The flashlight state is passed to the shader as a uniform:
+<img width="155" height="37" alt="flashlight" src="https://github.com/user-attachments/assets/7212cb85-50b7-4c9e-b987-6a47dbcf157f" />
+
+The shader adds glinting, pulsing, glowing, a slight colour shift and a bloom boost to the crystal to ensure the player knows they are looking at a real crystal:
+
+<img width="431" height="390" alt="crystalshader" src="https://github.com/user-attachments/assets/6ae667c6-2f8b-4c03-a6d2-4446edfe5f4c" />
+
+Then when the crystal is drawn, the effects from the shader are applied to the real crystal:
+
+<img width="445" height="315" alt="crystaldraw" src="https://github.com/user-attachments/assets/44f4cd7b-d960-4964-97cf-b2426fda9fd0" />
+
+### Crystal Clicking Interaction System
+
+The player interacts with crystals using a direction-based clicking system. When the player clicks, the game checks whether a "real" crystal is within a valid angle and distance from the camera's forward direction. If the crystal is real and part of the quest list, it is marked as found. If it is real but not on the list, the player is informed that crystal is not on their quest list. If all crystals are found, the Dev Crystal is spawned behind the player.
+
+![20260114-1641-57 2609545](https://github.com/user-attachments/assets/198667ca-023f-4f23-8369-c899c28f21b7)
+
+The interaction logic works by calculating the vector from the camera to each crystal, measuring the angle between that vector and the camera's forward direction, checking the distance, selecting the crystal the player is most directly looking at, updating the quest list or showing feedback.
+
+<img width="389" height="322" alt="clicklogic" src="https://github.com/user-attachments/assets/b802aaf2-f715-4f34-be2e-e73ed884ebe6" />
+
+### Quest List
+The game maintains a quest list containing the names of the real crystals the player must find. This list is displayed on the UI and updates dynamically as crystals are discovered. When the player clicks a real crystal that is part of the quest list, it is removed from the list. The quest list is unique to each playthrough.
+
+<img width="158" height="245" alt="questlist" src="https://github.com/user-attachments/assets/ac9660ca-0b58-439f-b817-aad348922810" />
+
+The quest list is stored as a vector of strings. When a crystal is clicked, the game checks whether its type exists in the list and removes it if found:
+
+<img width="719" height="251" alt="listlogic1" src="https://github.com/user-attachments/assets/b87b4e91-5e09-4374-a992-33aab3591f7f" />
+<img width="728" height="148" alt="listlogic2" src="https://github.com/user-attachments/assets/e3bd420a-01bd-421e-831d-209459146cec" />
+
+### Quest Completion and Dev Crystal Spawn
+When the quest list becomes empty, the quest is marked as complete. A message is shown to the player, a completion sound plays, and a special Dev Crystal is spawned behind the player. This crystal acts as the final objective of the game.
+
+![20260114-1723-46 6158525](https://github.com/user-attachments/assets/f59c1a4f-d1eb-4181-9295-b462fa63b80a)
+
+The Dev Crystal’s position is calculated using the player’s current position and forward direction, then grounded to the terrain so it sits correctly on the surface.
+
+<img width="401" height="374" alt="devlogic" src="https://github.com/user-attachments/assets/124b118b-37a0-4d4f-966a-9746d65b62ee" />
+
+The Dev Crystal is the Signature and clicking on it shows the game credits.
+
+
+### Audio Feedback
+The audio is handled by the Irrklang library. There is background music playing continuously from the games launch:
+
+<img width="397" height="98" alt="irrklanginit" src="https://github.com/user-attachments/assets/ae76a6fb-12d9-4714-b261-28591d13a7a6" />
+
+Sounds play when a real crystal is found:
+
+<img width="306" height="14" alt="foundNoise" src="https://github.com/user-attachments/assets/7e49e289-7717-4f62-833a-20e3f866eb55" />
+
+and when the game is complete:
+
+<img width="299" height="14" alt="complete" src="https://github.com/user-attachments/assets/56839c6b-b466-4b75-83f5-78f114bc961f" />
