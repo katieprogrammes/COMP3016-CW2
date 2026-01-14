@@ -265,6 +265,27 @@ void HandleCrystalClick()
 
     mouseClicked = false;
 
+    if (devCrystalSpawned) 
+    { 
+        glm::vec3 center = devCrystal.model->GetWorldCenter(devCrystal.position, devCrystal.scale); 
+        glm::vec3 toCrystal = center - camera.Position; 
+        float dist = glm::length(toCrystal); 
+        if (dist <= 30.0f) 
+        { 
+            glm::vec3 dir = toCrystal / dist; 
+            float alignment = glm::dot(dir, glm::normalize(camera.Front)); 
+            float angle = acos(glm::clamp(alignment, -1.0f, 1.0f)); 
+            float angularRadius = asin(glm::clamp(devCrystal.radius / dist, -1.0f, 1.0f)); 
+            if (angle < glm::radians(6.0f) + angularRadius) 
+            { 
+                showDevMessage = true; 
+                devMessageTimer = 4.0f; 
+                std::cout << "Clicked Dev Crystal!\n"; 
+                return; 
+            } 
+        } 
+    }
+
     CrystalInstance* best = nullptr;
     float bestScore = -1.0f;
 
@@ -334,6 +355,29 @@ void HandleCrystalClick()
 
                 std::cout << " QUEST COMPLETE! \n";
                 soundEngine->play2D("media/audio/complete.wav", false);
+
+                showDevHint = true;
+                devHintTimer = 3.0f;
+
+                devCrystalSpawned = true;
+                devCrystal.model = devCrystalModelPtr;
+
+                //position
+                glm::vec3 behind = camera.Position - camera.Front * 2.0f;
+
+                float terrainY = GetTerrainHeight(behind.x, behind.z);
+                devCrystal.position = glm::vec3(behind.x, terrainY + 0.5f, behind.z);
+
+
+                //size
+                devCrystal.scale = glm::vec3(0.0025f);
+
+                //rotation
+                devCrystal.rotation = glm::vec3(0.0f);
+
+                //click detection
+                devCrystal.radius = devCrystal.model->GetWorldRadius(devCrystal.scale);
+
 
                 mouseClicked = false;
             }
@@ -687,6 +731,51 @@ int main()
             c.model->Draw(crystalShader);
             
         }
+        //Draw dev Crystal
+        if (devCrystalSpawned)
+        {
+
+            glm::mat4 modelMat = glm::mat4(1.0f);
+
+            // position
+            modelMat = glm::translate(modelMat, devCrystal.position);
+
+            // ground it on terrain using its own model + scale
+            modelMat = glm::translate(
+                modelMat,
+                glm::vec3(0.0f, -devCrystal.model->minY * devCrystal.scale.y, 0.0f)
+            );
+
+            // scale
+            modelMat = glm::scale(modelMat, devCrystal.scale);
+
+            crystalShader.setMat4("model", modelMat);
+
+            // torch detection (same as normal crystals)
+            glm::vec3 center = devCrystal.model->GetWorldCenter(devCrystal.position, devCrystal.scale);
+            glm::vec3 toCrystal = glm::normalize(center - camera.Position);
+            glm::vec3 torchDir = glm::normalize(camera.Front);
+
+            float alignment = glm::dot(toCrystal, torchDir);
+
+            float cutOff = glm::cos(glm::radians(12.5f));
+            float outerCutOff = glm::cos(glm::radians(15.0f));
+
+            float intensity = (alignment - outerCutOff) / (cutOff - outerCutOff);
+            intensity = glm::clamp(intensity, 0.0f, 1.0f);
+
+            float dist = glm::distance(camera.Position, center);
+            float falloff = 1.0f - glm::clamp(dist / 12.0f, 0.0f, 1.0f);
+
+            float sparkle = intensity * falloff;
+            crystalShader.setFloat("sparkleStrength", sparkle);
+            crystalShader.setBool("isRealCrystal", true);
+
+            // draw it
+            devCrystal.model->Draw(crystalShader);
+        }
+
+
 
         // world transformation
         lightingShader.use();
@@ -763,10 +852,10 @@ int main()
         if (showDevHint)
         {
             const char* msg = "A strange crystal has appeared nearby...";
-            float scale = 1.8f;
+            float scale = 3.0f;
 
-            float x = SCR_WIDTH * 0.5f - 300.0f;
-            float y = 200.0f;
+            float x = SCR_WIDTH * 0.5f - 750.0f;
+            float y = 25.0f;
 
             DrawText(uiShader, x, y, msg, scale);
 
