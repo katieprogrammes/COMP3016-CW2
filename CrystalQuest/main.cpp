@@ -28,8 +28,6 @@
 #include <random>
 #include <algorithm>
 
-
-
 using namespace irrklang;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -37,7 +35,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 unsigned int loadTexture(const char* path);
-
 
 //audio
 irrklang::ISoundEngine* soundEngine = nullptr;
@@ -56,10 +53,7 @@ struct CrystalInstance {
     bool found = false; 
     std::string type;
 
-    void onClick()
-    {
-        
-    }
+    void onClick(){}
 };
 std::vector<CrystalInstance> crystals;
 
@@ -119,7 +113,7 @@ float questCompleteTimer = 0.0f;
 bool showIncorrectMessage = false;
 float incorrectMessageTimer = 0.0f;
 
-
+//UI functions
 void DrawText(Shader& shader, float x, float y, const char* text, float scale)
 {
     static char buffer[99999]; //stb easy font required output buffer
@@ -215,24 +209,21 @@ float GetTextWidth(const char* text, float scale)
     return maxX * scale;
 }
 
-
-
-// window settings
+//window settings
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
 
-// camera
+//camera
 Camera camera(glm::vec3(50.0f, 50.0f, 100.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-// timing
+//timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 //logic to make the crystals clickable
-
 bool mouseClicked = false;
 
 void mouse_click_callback(GLFWwindow* window, int button, int action, int mods)
@@ -347,7 +338,7 @@ void HandleCrystalClick()
 
             questList.erase(it);
 
-            // Quest Complete
+            //Quest Complete
             if (questList.empty() && !questCompleted)
             {
                 questCompleted = true;
@@ -367,7 +358,6 @@ void HandleCrystalClick()
 
                 float terrainY = GetTerrainHeight(behind.x, behind.z);
                 devCrystal.position = glm::vec3(behind.x, terrainY + 0.5f, behind.z);
-
 
                 //size
                 devCrystal.scale = glm::vec3(0.0025f);
@@ -394,14 +384,12 @@ void HandleCrystalClick()
 }
 
 
-
-
 int main()
 {
     //randomising crystals
     srand(static_cast<unsigned>(time(nullptr)));
 
-    // glfw: initialize and configure
+    //glfw: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -411,7 +399,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    // glfw window creation
+    //glfw window creation
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Crystal Quest", NULL, NULL);
     if (window == NULL)
     {
@@ -426,14 +414,14 @@ int main()
     glfwSetMouseButtonCallback(window, mouse_click_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    // glad: load all OpenGL function pointers
+    //glad: load all OpenGL function pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
-    // configure global opengl state
+    //configure global opengl state
     glEnable(GL_DEPTH_TEST);
 
     //audio logic
@@ -444,16 +432,16 @@ int main()
     }
     //background music
     soundEngine->play2D("media/audio/background.wav", true);
+
     //terrain
     unsigned int terrainTexture = loadTexture("media/terrain.png");
     Terrain terrain = CreateTerrain();
 
-    // build and compile shader programs
+    //build and compile shader programs
     Shader lightingShader("textures/colors.vs", "textures/colors.fs");
     Shader crystalShader("shaders/crystal.vs", "shaders/crystal.fs");
     Shader uiShader("shaders/ui.vs", "shaders/ui.fs");
     Shader skyboxShader("shaders/skybox.vs", "shaders/skybox.fs");
-
 
     //skybox textures
     std::vector<std::string> faces = {
@@ -464,7 +452,6 @@ int main()
     "media/skybox/stars1.png",
     "media/skybox/stars1.png"
     };
-
 
     Skybox skybox(faces);
 
@@ -488,8 +475,6 @@ int main()
     Model lilRedCrystal("media/gems/lilred.gltf");
     Model devCrystalModel("media/gems/dev.gltf");
     devCrystalModelPtr = &devCrystalModel;
-
-
 
     std::vector<Model*> crystalModels = { 
         &redCrystal, 
@@ -521,16 +506,14 @@ int main()
     modelNames[&lilOrangeCrystal] = "Small Orange";
     modelNames[&lilRedCrystal] = "Small Red";
 
-    for (int i = 0; i < 200; i++)
+    for (int i = 0; i < 150; i++)
     {
         Model* model = crystalModels[rand() % crystalModels.size()];
-
         bool placed = false;
         for (int attempt = 0; attempt < 20; attempt++)
         {
             float x = rand() % TERRAIN_SIZE;
             float z = rand() % TERRAIN_SIZE;
-
             float desiredHeight = 3.0f;
             float scaleFactor = desiredHeight / model->height;
             glm::vec3 scale(scaleFactor);
@@ -563,32 +546,30 @@ int main()
         }
     }
 
-    // Build a list of types that actually spawned
+    //making sure quest list has spawned crystals
     std::vector<std::string> spawnedTypes;
     spawnedTypes.reserve(crystals.size());
 
     for (auto& c : crystals)
     {
-        if (c.isReal)  // if all crystals are real, remove this check
+        if (c.isReal)
             spawnedTypes.push_back(c.type);
     }
-
    
-    // Shuffle and pick quest items
+    //picking new quest items each launch
     std::shuffle(spawnedTypes.begin(), spawnedTypes.end(), std::mt19937(std::random_device{}()));
 
     questList.clear();
 
-    int questCount = 10; // or however many you want
+    int questCount = 10;
     for (int i = 0; i < questCount && i < spawnedTypes.size(); i++)
     {
         questList.push_back(spawnedTypes[i]);
     }
 
-
     glm::vec3 pointLightPosition(0.0f, 20.0f, 0.0f);
 
-    // shader configuration
+    //shader configuration
     lightingShader.use();
     lightingShader.setInt("material.diffuse", 0);
     lightingShader.setInt("material.specular", 1);
@@ -598,25 +579,25 @@ int main()
     crystalShader.setInt("texture_normal1", 1);
     crystalShader.setInt("texture_emissive1", 2);
 
-    GenerateQuestList(1);
+    GenerateQuestList(8);
 
-    // render loop
+    //render loop
     while (!glfwWindowShouldClose(window))
     {
 
-        // per-frame time logic
+        //per-frame time logic
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // input
+        //input
         processInput(window);
 
-        // CAMERA FOLLOWS TERRAIN (CPU height, from terrain.cpp)
+        //camera follows terrain
         float terrainY = GetTerrainHeight(camera.Position.x, camera.Position.z);
         camera.Position.y = glm::mix(camera.Position.y, terrainY + 2.0f, 10.0f * deltaTime);
 
-        //Camera collision with crystals
+        //camera collision with crystals
         float cameraRadius = 0.4f;
         for (auto& c : crystals)
         {
@@ -633,22 +614,22 @@ int main()
 
         HandleCrystalClick();
 
-        // render
+        //render
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // be sure to activate shader when setting uniforms/drawing objects
+        //be sure to activate shader when setting uniforms/drawing objects
         lightingShader.use();
         lightingShader.setVec3("viewPos", camera.Position);
         lightingShader.setFloat("material.shininess", 32.0f);
 
-        // directional light
+        //directional light
         lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
         lightingShader.setVec3("dirLight.ambient", 0.0f, 0.0f, 0.0f);
         lightingShader.setVec3("dirLight.diffuse", 0.2f, 0.2f, 0.2f);
         lightingShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
 
-        // point light 1
+        //point light 1
         lightingShader.setVec3("pointLights[0].position", pointLightPosition);
         lightingShader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
         lightingShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
@@ -673,7 +654,7 @@ int main()
         crystalShader.use();
         crystalShader.setVec3("lightPos", pointLightPosition);
 
-        // view/projection transformations
+        //view/projection transformations
         lightingShader.use();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -722,36 +703,37 @@ int main()
             float dist = glm::distance(camera.Position, center);
             float falloff = 1.0f - glm::clamp(dist / 12.0f, 0.0f, 1.0f);
 
+            //adding effects to real crystals
             float sparkle = (c.isReal) ? (intensity * falloff) : 0.0f;
             crystalShader.setFloat("sparkleStrength", sparkle);
             crystalShader.setBool("isRealCrystal", c.isReal);
 
 
-            // draw the crystal
+            //draw the crystal
             c.model->Draw(crystalShader);
             
         }
-        //Draw dev Crystal
+        //dev Crystal
         if (devCrystalSpawned)
         {
 
             glm::mat4 modelMat = glm::mat4(1.0f);
 
-            // position
+            //position
             modelMat = glm::translate(modelMat, devCrystal.position);
 
-            // ground it on terrain using its own model + scale
+            //ground it on terrain
             modelMat = glm::translate(
                 modelMat,
                 glm::vec3(0.0f, -devCrystal.model->minY * devCrystal.scale.y, 0.0f)
             );
 
-            // scale
+            //scale
             modelMat = glm::scale(modelMat, devCrystal.scale);
 
             crystalShader.setMat4("model", modelMat);
 
-            // torch detection (same as normal crystals)
+            //torch detection
             glm::vec3 center = devCrystal.model->GetWorldCenter(devCrystal.position, devCrystal.scale);
             glm::vec3 toCrystal = glm::normalize(center - camera.Position);
             glm::vec3 torchDir = glm::normalize(camera.Front);
@@ -771,13 +753,11 @@ int main()
             crystalShader.setFloat("sparkleStrength", sparkle);
             crystalShader.setBool("isRealCrystal", true);
 
-            // draw it
+            //draw it
             devCrystal.model->Draw(crystalShader);
         }
 
-
-
-        // world transformation
+        //world transformation
         lightingShader.use();
 
         glm::mat4 model = glm::mat4(1.0f);
@@ -794,11 +774,9 @@ int main()
         glBindVertexArray(terrain.VAO);
         glDrawElements(GL_TRIANGLES, terrain.indexCount, GL_UNSIGNED_INT, 0);
 
-
         //UI render
         glDisable(GL_DEPTH_TEST);
 
-        // Build orthographic projection
         glm::mat4 uiProjection = glm::ortho(
             0.0f, (float)SCR_WIDTH,
             (float)SCR_HEIGHT, 0.0f,
@@ -808,7 +786,7 @@ int main()
         uiShader.use();
         uiShader.setMat4("projection", uiProjection);
 
-        // Draw quest list
+        //draw quest list
         float scale = 2.5f;
         float y = 20.0f;
         DrawText(uiShader, 20, y, "QUEST LIST:", scale);
@@ -827,8 +805,8 @@ int main()
             float scale = 4.0f;
             float textWidth = GetTextWidth(msg, scale);
 
-            float x = SCR_WIDTH * 0.5f - 770.0f;  // center horizontally
-            float yText = 200.0f;                      // vertical position
+            float x = SCR_WIDTH * 0.5f - 770.0f;  //horizontal position
+            float yText = 200.0f;                      //vertical position
 
             DrawText(uiShader, x, yText, msg, scale);
 
@@ -840,7 +818,7 @@ int main()
             const char* msg = "This crystal is real but not on your quest list";
             float scale = 3.0f;
 
-            float x = SCR_WIDTH * 0.5f - 750.0f;
+            float x = SCR_WIDTH * 0.5f - 770.0f;
             float y = 25.0f;
 
             DrawText(uiShader, x, y, msg, scale);
@@ -886,7 +864,7 @@ int main()
         }
 
 
-        // How to Play UI
+        //How to Play UI
         {
             float scale = 2.0f;
             float y = 20.0f;
@@ -917,20 +895,20 @@ int main()
 
         glEnable(GL_DEPTH_TEST);
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+        //glfw: swap buffers and poll IO events
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.    
+    //glfw: terminate, clearing all previously allocated GLFW resources   
     glfwTerminate();
     soundEngine->drop();
     return 0;
 }
 
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+//process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -954,16 +932,14 @@ void processInput(GLFWwindow* window) {
 }
 
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+//glfw: whenever the window size changed (by OS or user resize) this callback function executes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
 
 
-// glfw: whenever the mouse moves, this callback is called
+//glfw: whenever the mouse moves, this callback is called
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     float xpos = static_cast<float>(xposIn);
@@ -977,7 +953,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     }
 
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+    float yoffset = lastY - ypos; //reversed since y-coordinates go from bottom to top
 
     lastX = xpos;
     lastY = ypos;
@@ -985,13 +961,13 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
+//glfw: whenever the mouse scroll wheel scrolls, this callback is called
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
-// utility function for loading a 2D texture from file
+//utility function for loading a 2D texture from file
 unsigned int loadTexture(char const* path)
 {
     unsigned int textureID;

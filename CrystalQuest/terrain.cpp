@@ -5,8 +5,6 @@ const int TERRAIN_SIZE = 200;
 const float TERRAIN_SCALE = 1.0f;
 const float HEIGHT_SCALE = 12.0f;
 
-
-
 static int idx(int x, int z) {
     return z * TERRAIN_SIZE + x;
 }
@@ -22,7 +20,7 @@ Terrain CreateTerrain() {
     noise.SetFractalOctaves(4);
     noise.SetFrequency(0.01f);
 
-   // vertices
+   //vertices
     vertices.resize(TERRAIN_SIZE * TERRAIN_SIZE);
 
     for (int z = 0; z < TERRAIN_SIZE; z++) {
@@ -45,7 +43,7 @@ Terrain CreateTerrain() {
 
     }
 
-    // normals
+    //normals
     for (int z = 1; z < TERRAIN_SIZE - 1; z++) {
         for (int x = 1; x < TERRAIN_SIZE - 1; x++) {
 
@@ -61,7 +59,7 @@ Terrain CreateTerrain() {
         }
     }
 
-    // indices
+    //indices
     std::vector<unsigned int> indices;
 
     for (int z = 0; z < TERRAIN_SIZE - 1; z++) {
@@ -97,20 +95,19 @@ Terrain CreateTerrain() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-    // position
+    //position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // normal
+    //normal
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)offsetof(TerrainVertex, normal));
     glEnableVertexAttribArray(1);
 
-    // color
+    //color
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)offsetof(TerrainVertex, color));
     glEnableVertexAttribArray(3);
 
-
-    // uv
+    //uv
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (void*)offsetof(TerrainVertex, uv)); 
     glEnableVertexAttribArray(2);
 

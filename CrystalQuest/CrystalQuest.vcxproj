@@ -141,7 +141,6 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="skybox.cpp" />
-    <ClCompile Include="Solution.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="terrain.cpp" />
   </ItemGroup>

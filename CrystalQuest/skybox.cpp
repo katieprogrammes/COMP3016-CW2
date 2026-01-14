@@ -3,7 +3,7 @@
 #include "./stb_image.h"
 
 float skyboxVertices[] = {
-    // positions          
+    //positions          
     -1.0f,  1.0f, -1.0f,
     -1.0f, -1.0f, -1.0f,
      1.0f, -1.0f, -1.0f,
@@ -48,7 +48,7 @@ float skyboxVertices[] = {
 };
 
 Skybox::Skybox(const std::vector<std::string>& faces)
-    : shader("shaders/skybox.vs", "shaders/skybox.fs")   // ⭐ load shader here
+    : shader("shaders/skybox.vs", "shaders/skybox.fs")   //load shader here
 {
     cubemapID = loadCubemap(faces);
 
