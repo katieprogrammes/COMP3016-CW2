@@ -141,3 +141,51 @@ Sounds play when a real crystal is found:
 and when the game is complete:
 
 <img width="299" height="14" alt="complete" src="https://github.com/user-attachments/assets/56839c6b-b466-4b75-83f5-78f114bc961f" />
+
+## Exception Handling and Test Cases
+
+Even though this project is primarily graphical and interactive, I implemented several small but important safety checks to prevent crashes and undefined behaviour during gameplay.
+
+### Terrain Bounds Checks
+When sampling terrain height, the code checks that the XZ coordinates are within valid bounds before accessing the vertex array. This prevents out‑of‑range memory access:
+
+<img width="389" height="31" alt="terrainboundchecking" src="https://github.com/user-attachments/assets/258f89d7-5f23-4a38-a7ac-201a36e3567b" />
+
+### Model Pointer Validation
+Before interacting with crystals, the code checks that the model pointer exists:
+
+<img width="157" height="46" alt="modelcheck" src="https://github.com/user-attachments/assets/d85a4a61-a6be-4779-97f2-fb12e923eb19" />
+
+### Dev Crystal spawn safety 
+The Dev Crystal only spawns once, and only when the quest list is empty, preventing duplicate spawns or logic conflicts.
+
+### Test Cases
+Throughout development, I used an incremental testing strategy to ensure each feature worked correctly before moving on to the next. I made small, isolated changes and tested them immediately, which made it easier to identify the source of errors and revert to a stable version when necessary.
+
+Because OpenGL provides very limited runtime error feedback, I relied heavily on std::cout diagnostic messages to verify that each subsystem was behaving as expected. These were used extensively during:
+
+Startup and initialisation - I added checks for GLFW window creation, GLAD loading, and IrrKlang audio initialisation. Each subsystem printed a clear error message if it failed to load, preventing the program from running in an invalid state.
+
+<img width="527" height="377" alt="initcout" src="https://github.com/user-attachments/assets/352284ba-25b6-44f6-a450-38a9683a1070" />
+
+Asset Loading - When loading models and textures, I printed out file paths and success/failure messages. This made it easy to detect incorrect paths, missing files, or unsupported formats.
+
+<img width="440" height="64" alt="assetcout" src="https://github.com/user-attachments/assets/b4d3f32f-a0c0-4457-907c-28ddf576c9a0" />
+
+Gameplay Logic - I used cout statements to monitor crystal spawning, collision checks, click detection, quest list updates, and Dev Crystal spawning. These logs helped confirm that each mechanic was triggering at the correct time and behaving as intended.
+
+<img width="362" height="197" alt="logicout" src="https://github.com/user-attachments/assets/32576379-d345-41cd-a992-41421a6f8112" />
+
+I also repeatedly tested crystal clicking, flashlight highlighting and quest progression through multiple playthroughs to ensure that crystals could only be clicked when looked at, fake crystals were ignored, real crystals updated the quest list correctly, incorrect clicks triggered the "not on quest list! message and the Dev Crystal spawned only once and in the correct location
+
+This combination of incremental testing, diagnostic output and repeated in-game trials ensured that the project remained stable and that each mechanic functioned consistently throughout development.
+
+## Evaluation and Reflection
+
+Looking back at this project, I feel I managed to build a complete OpenGL game with procedural terrain, model loading, lighting, UI, audio, and a functional gameplay loop. There were many points in early development where I felt out of my depth, but I did enjoy learning how OpenGL works and gradually gained confidence as the different systems started coming together. I’m also glad that I was able to deliver the core idea from my proposal, even if I didn’t reach my stretch goal of turning the terrain into a cave system.
+
+The crystal interaction system was the most challenging mechanic to implement. Since I wasn’t able to integrate PhysX or raycasting, I relied instead on vector maths, angle checks, and distance thresholds. It took a lot of trial and error to get right, but the final mechanic works reliably and feels consistent during gameplay.
+
+If I were to continue working on this, I would like to expand the variety of crystal models and experiment with particle effects to make real crystals sparkle more convincingly. There are also things I would approach differently now that I understand the C++ language and libraries better, especially around structuring the code and planning features earlier in development.
+
+Overall, even though I struggled at times, I’m satisfied with what I achieved. The project feels like a small but complete game, and the different systems work together in a way that I’m genuinely proud of.
