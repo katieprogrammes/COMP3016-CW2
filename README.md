@@ -17,6 +17,17 @@ The dependencies used were:
 - stb_easy_font – Lightweight text rendering for the UI
 - stb_image – Loading texture files for models and terrain
 
+## How To Compile
+You can clone from github into Visual Studio then open the .sln (solution) file and you can then either run through the Debug or Release configuration (x64 version).
+
+The .exe file provided in Release/x64 should run without any additional setup.
+
+## How To Play
+Controls are listed in the top right of the screen and are as follows:
+WASD for Movement
+Mouse for Camera
+Left Click for Crystal Detection
+
 ## Use of AI Description
 
 My AI usage fell under the following Acceptable Use Categories:
