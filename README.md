@@ -24,8 +24,11 @@ The .exe file provided in Release/x64 should run without any additional setup.
 
 ## How To Play
 Controls are listed in the top right of the screen and are as follows:
+
 WASD for Movement
+
 Mouse for Camera
+
 Left Click for Crystal Detection
 
 ## Youtube Link
