@@ -74,6 +74,10 @@
     <LibraryPath>$(SolutionDir)External\OpenGL\lib;$(LibraryPath)</LibraryPath>
     <IncludePath>$(SolutionDir)External\OpenGL\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(SolutionDir)External\OpenGL\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)External\OpenGL\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -138,7 +142,19 @@ xcopy /Y /D "$(ProjectDir)media" "$(OutDir)media" /E /I</Command>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\OpenGL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mt.lib;irrKlang.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /D "$(SolutionDir)External\OpenGL\lib\assimp-vc143-mt.dll" "$(OutDir)"
+xcopy /Y /D "$(SolutionDir)External\OpenGL\lib\irrKlang.dll" "$(OutDir)"
+mkdir "$(OutDir)shaders"
+xcopy /Y /D "$(ProjectDir)shaders" "$(OutDir)shaders" /E /I
+mkdir "$(OutDir)textures"
+xcopy /Y /D "$(ProjectDir)textures" "$(OutDir)textures" /E /I
+mkdir "$(OutDir)media"
+xcopy /Y /D "$(ProjectDir)media" "$(OutDir)media" /E /I</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
