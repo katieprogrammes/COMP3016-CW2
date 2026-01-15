@@ -28,6 +28,9 @@ WASD for Movement
 Mouse for Camera
 Left Click for Crystal Detection
 
+## Youtube Link
+https://youtu.be/46T4UNBQjXY
+
 ## Use of AI Description
 
 My AI usage fell under the following Acceptable Use Categories:
