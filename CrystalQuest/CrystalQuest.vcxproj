@@ -71,8 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>C:\Users\Public\OpenGL\lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>C:\Users\Public\OpenGL\include;C:\Users\Public\OpenGL\include\physx5;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)External\OpenGL\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)External\OpenGL\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -112,9 +112,19 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXCooking_64.lib;assimp-vc143-mt.lib;irrKlang.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\Public\OpenGL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mt.lib;irrKlang.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\OpenGL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /D "$(SolutionDir)External\OpenGL\lib\assimp-vc143-mt.dll" "$(OutDir)"
+xcopy /Y /D "$(SolutionDir)External\OpenGL\lib\irrKlang.dll" "$(OutDir)"
+mkdir "$(OutDir)shaders"
+xcopy /Y /D "$(ProjectDir)shaders" "$(OutDir)shaders" /E /I
+mkdir "$(OutDir)textures"
+xcopy /Y /D "$(ProjectDir)textures" "$(OutDir)textures" /E /I
+mkdir "$(OutDir)media"
+xcopy /Y /D "$(ProjectDir)media" "$(OutDir)media" /E /I</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
