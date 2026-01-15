@@ -1,7 +1,7 @@
 #include "terrain.h"
 #include <glad/glad.h>
 
-const int TERRAIN_SIZE = 200;
+const int TERRAIN_SIZE = 180;
 const float TERRAIN_SCALE = 1.0f;
 const float HEIGHT_SCALE = 12.0f;
 

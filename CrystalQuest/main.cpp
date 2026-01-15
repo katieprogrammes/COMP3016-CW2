@@ -60,7 +60,7 @@ std::vector<CrystalInstance> crystals;
 void SpawnCrystalOnTerrain(Model* model, float x, float z) 
 {
     float y = GetTerrainHeight(x, z);
-    bool real = (rand() % 5 == 0); //chance if crystal is real
+    bool real = (rand() % 4 == 0); //chance if crystal is real
 
     //normalising crystal height
     float desiredRadius = 1.5f;
@@ -485,6 +485,7 @@ int main()
         &yellowCrystal,
         &lgPurpCrystal,
         &lgBlueCrystal,
+        &lgRedCrystal,
         &lgOrangeCrystal,
         &lilGreenCrystal,
         &lilPurpCrystal,
@@ -595,7 +596,7 @@ int main()
 
         //camera follows terrain
         float terrainY = GetTerrainHeight(camera.Position.x, camera.Position.z);
-        camera.Position.y = glm::mix(camera.Position.y, terrainY + 2.0f, 10.0f * deltaTime);
+        camera.Position.y = glm::mix(camera.Position.y, terrainY + 2.25f, 10.0f * deltaTime);
 
         //camera collision with crystals
         float cameraRadius = 0.4f;
