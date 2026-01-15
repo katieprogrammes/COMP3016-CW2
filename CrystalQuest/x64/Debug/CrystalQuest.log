@@ -1,0 +1,107 @@
+﻿  glad.c
+  main.cpp
+C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\main.cpp(517,21): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\main.cpp(518,21): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\main.cpp(545,21): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\main.cpp(546,21): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+  skybox.cpp
+  stb_image.cpp
+  terrain.cpp
+  Generating Code...
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  CrystalQuest.vcxproj -> C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\x64\Debug\CrystalQuest.exe
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\External\OpenGL\lib\assimp-vc143-mt.dll
+  1 File(s) copied
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\External\OpenGL\lib\irrKlang.dll
+  1 File(s) copied
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\shaders\crystal.fs
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\shaders\crystal.vs
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\shaders\light_cube.fs
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\shaders\light_cube.vs
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\shaders\skybox.fs
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\shaders\skybox.vs
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\shaders\ui.fs
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\shaders\ui.vs
+  8 File(s) copied
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\textures\colors.fs
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\textures\colors.vs
+  2 File(s) copied
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\rockytext.jpg
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\terrain.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\audio\background.wav
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\audio\complete.wav
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\audio\devCrystal.wav
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\audio\foundNoise.wav
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\blue.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\blue.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\dev.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\dev.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\green.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\green.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lgBlue.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lgBlue.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lgGreen.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lgGreen.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lgOrange.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lgOrange.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lgPurp.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lgPurp.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lgRed.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lgRed.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lilgreen.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lilgreen.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lilorange.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lilorange.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lilpurp.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lilpurp.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lilred.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\lilred.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\orange.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\orange.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\purple.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\purple.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\red.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\red.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\scene.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\scene.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\yellow.bin
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\yellow.gltf
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\BlueCrystal_baseColor.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\BlueCrystal_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\BlueCrystal_metallicRoughness.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\BlueCrystal_normal.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.002_baseColor.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.002_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.003_baseColor.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.003_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.004_baseColor.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.004_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.004_metallicRoughness.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.004_normal.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.005_baseColor.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.005_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.007_baseColor.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.007_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02.007_normal.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02_baseColor.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\Crystal_02_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\DevCrystal_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\GreenCrystal_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\GreenCrystal_metallicRoughness.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\lambert1_baseColor.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\lambert1_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\lambert2_baseColor.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\lambert2_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\lambert3_baseColor.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\lambert3_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\lambert4_baseColor.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\lambert4_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\lambert4_metallicRoughness.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\lambert4_normal.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\OrangeCrystal_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\PurpleCrystal_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\RedCrystal_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\gems\textures\YellowCrystal_emissive.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\skybox\stars.png
+  C:\Users\Katie\Desktop\CrystalQuest\CrystalQuest\CrystalQuest\media\skybox\stars1.png
+  78 File(s) copied
