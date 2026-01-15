@@ -269,6 +269,7 @@ void HandleCrystalClick()
             float angularRadius = asin(glm::clamp(devCrystal.radius / dist, -1.0f, 1.0f)); 
             if (angle < glm::radians(6.0f) + angularRadius) 
             { 
+                soundEngine->play2D("media/audio/devCrystal.wav", false);
                 showDevMessage = true; 
                 devMessageTimer = 4.0f; 
                 std::cout << "Clicked Dev Crystal!\n"; 
