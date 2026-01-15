@@ -62,6 +62,24 @@ Rendering is handled by a custom vertex and fragment shader. In the render loop,
 
 <img width="882" height="402" alt="terrainrender" src="https://github.com/user-attachments/assets/155db5a3-9c56-4610-aa35-bf00908aadf7" />
 
+### Skybox
+For the night sky I generated a skybox 
+
+<img width="940" height="477" alt="image" src="https://github.com/user-attachments/assets/f6e38444-63f9-4fe9-812b-7e9131b76ab1" />
+
+I achieved this by making a simple cube of 36 vertices:
+
+<img width="207" height="745" alt="image" src="https://github.com/user-attachments/assets/ec61fcd1-447b-491a-8d1c-42446710706c" />
+
+And loading 6 images into a cubemap texture:
+
+<img width="406" height="231" alt="image" src="https://github.com/user-attachments/assets/0e800b4e-6346-4c74-94de-e7b6b51bf646" />
+
+I then draw the cube with the camera’s translation removed so it always stays centred around the player:
+
+<img width="366" height="205" alt="image" src="https://github.com/user-attachments/assets/e873a72c-3fa9-4f73-a7ed-797f6ae8327b" />
+
+
 ### Crystal Spawning
 
 Crystals are spawned at randomised positions across the terrain. Each crystal is grounded by sampling the terrain height at its XZ position and applying a model‑specific offset so it sits naturally on the surface.
