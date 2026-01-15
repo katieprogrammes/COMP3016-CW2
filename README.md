@@ -111,7 +111,7 @@ The interaction logic calculates the vector from the camera to each crystal, mea
 ### Quest List
 The quest list contains the names of the real crystals the player must find. It is displayed on the UI and updates dynamically as crystals are discovered. Each playthrough generates a unique list.
 
-<img width="158" height="245" alt="questlist" src="https://github.com/user-attachments/assets/ac9660ca-0b58-439f-b817-aad348922810" />
+<img width="288" height="376" alt="image" src="https://github.com/user-attachments/assets/fdd7e35e-b1a3-4024-a9f2-faa98a4203b1" />
 
 The quest list is stored as a vector of strings. When a crystal is clicked, the game checks whether its type is in the list and removes it if found:
 
