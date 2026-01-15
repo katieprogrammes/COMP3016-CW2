@@ -138,9 +138,15 @@ A sound plays when a real crystal is found:
 
 <img width="306" height="14" alt="foundNoise" src="https://github.com/user-attachments/assets/7e49e289-7717-4f62-833a-20e3f866eb55" />
 
-And another sound plays when the quest is complete:
+Another sound plays when the quest is complete:
 
 <img width="299" height="14" alt="complete" src="https://github.com/user-attachments/assets/56839c6b-b466-4b75-83f5-78f114bc961f" />
+
+The final sound plays when the Dev Crystal is clicked:
+
+<img width="518" height="26" alt="image" src="https://github.com/user-attachments/assets/d6cb2f56-e681-490f-81d0-1a84f12c91d6" />
+
+
 
 ## Exception Handling and Test Cases
 
@@ -204,11 +210,14 @@ Large Crystals:
 
 ### Audio
 
-bg music:
+Background Music:
 Serene Ambient Soundscape for Relaxation by Matio888 -- https://freesound.org/s/797847/ -- License: Attribution 4.0
 
-found noise:
+Found Noise:
 13819 star twinkle ding by Robinhood76 -- https://freesound.org/s/819418/ -- License: Attribution NonCommercial 4.0
 
-success noise:
+Success Noise:
 Victory (short sting) by xkeril -- https://freesound.org/s/706753/ -- License: Creative Commons 0
+
+Dev Crystal Found:
+Completed.wav by Kenneth_Cooney -- https://freesound.org/s/609336/ -- License: Creative Commons 0
