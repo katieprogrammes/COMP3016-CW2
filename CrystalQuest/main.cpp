@@ -581,7 +581,7 @@ int main()
     crystalShader.setInt("texture_normal1", 1);
     crystalShader.setInt("texture_emissive1", 2);
 
-    GenerateQuestList(8);
+    GenerateQuestList(6);
 
     //render loop
     while (!glfwWindowShouldClose(window))
